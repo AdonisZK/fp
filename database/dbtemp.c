@@ -403,7 +403,7 @@ int main()
                     i++;
                     token = strtok(NULL, ":");
                 }
-                if (strcmp(cmd[0], "CREATEUSER") == 0)
+                if (strcmp(cmd[0], "cUser") == 0)
                 {
                     if (strcmp(cmd[3], "0") == 0)
                         createUser(cmd[1], cmd[2]);
@@ -414,7 +414,7 @@ int main()
                         bzero(buff, sizeof(buff));
                     }
                 }
-                else if (strcmp(cmd[0], "GRANTPERMISSION") == 0)
+                else if (strcmp(cmd[0], "gPermission") == 0)
                 {
                     if (strcmp(cmd[3], "0") == 0)
                     {
@@ -435,7 +435,7 @@ int main()
                         bzero(buff, sizeof(buff));
                     }
                 }
-                else if (strcmp(cmd[0], "CREATEDATABASE") == 0)
+                else if (strcmp(cmd[0], "cDatabase") == 0)
                 {
                     char loc[20000];
                     snprintf(loc, sizeof loc, "databases/%s", cmd[1]);
@@ -443,7 +443,7 @@ int main()
                     mkdir(loc, 0777);
                     insertPermission(cmd[2], cmd[1]);
                 }
-                else if (strcmp(cmd[0], "USEDATABASE") == 0)
+                else if (strcmp(cmd[0], "uDatabase") == 0)
                 {
                     if (strcmp(cmd[3], "0") != 0)
                     {
@@ -473,7 +473,7 @@ int main()
                     send(new_socket, used_db, strlen(used_db), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "CREATETABLE") == 0)
+                else if (strcmp(cmd[0], "cTable") == 0)
                 {
                     printf("%s\n", cmd[1]);
                     char *toks;
@@ -525,7 +525,7 @@ int main()
                         fclose(file);
                     }
                 }
-                else if (strcmp(cmd[0], "DROPDATABASE") == 0)
+                else if (strcmp(cmd[0], "dDatabase") == 0)
                 {
                     int allowed = isAllowedDb(cmd[2], cmd[1]);
 
@@ -546,7 +546,7 @@ int main()
                         bzero(buff, sizeof(buff));
                     }
                 }
-                else if (strcmp(cmd[0], "DROPTABLE") == 0)
+                else if (strcmp(cmd[0], "dTable") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -563,7 +563,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "DROPCOLUMN") == 0)
+                else if (strcmp(cmd[0], "dColumn") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -590,7 +590,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "INSERT") == 0)
+                else if (strcmp(cmd[0], "insert") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -668,7 +668,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "UPDATE") == 0)
+                else if (strcmp(cmd[0], "update") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -733,7 +733,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "DELETE") == 0)
+                else if (strcmp(cmd[0], "delete") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -786,7 +786,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "SELECT") == 0)
+                else if (strcmp(cmd[0], "select") == 0)
                 {
                     if (used_db[0] == '\0')
                     {

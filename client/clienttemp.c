@@ -185,28 +185,28 @@ int main(int argc, char *argv[])
         {
             if (strcmp(cmd[1], "USER") == 0 && strcmp(cmd[3], "IDENTIFIED") == 0 && strcmp(cmd[4], "BY") == 0)
             {
-                snprintf(buff, sizeof buff, "CREATEUSER:%s:%s:%d", cmd[2], cmd[5], id_user);
+                snprintf(buff, sizeof buff, "cUser:%s:%s:%d", cmd[2], cmd[5], id_user);
                 send(client_socket, buff, strlen(buff), 0);
             }
             else if (strcmp(cmd[1], "DATABASE") == 0)
             {
-                snprintf(buff, sizeof buff, "CREATEDATABASE:%s:%s:%d", cmd[2], argv[2], id_user);
+                snprintf(buff, sizeof buff, "cDatabase:%s:%s:%d", cmd[2], argv[2], id_user);
                 send(client_socket, buff, strlen(buff), 0);
             }
             else if (strcmp(cmd[1], "TABLE") == 0)
             {
-                snprintf(buff, sizeof buff, "CREATETABLE:%s", temp);
+                snprintf(buff, sizeof buff, "cTable:%s", temp);
                 send(client_socket, buff, strlen(buff), 0);
             }
         }
         else if (strcmp(cmd[0], "GRANT") == 0 && strcmp(cmd[1], "PERMISSION") == 0 && strcmp(cmd[3], "INTO") == 0)
         {
-            snprintf(buff, sizeof buff, "GRANTPERMISSION:%s:%s:%d", cmd[2], cmd[4], id_user);
+            snprintf(buff, sizeof buff, "gPermission:%s:%s:%d", cmd[2], cmd[4], id_user);
             send(client_socket, buff, strlen(buff), 0);
         }
         else if (strcmp(cmd[0], "USE") == 0)
         {
-            snprintf(buff, sizeof buff, "USEDATABASE:%s:%s:%d", cmd[1], argv[2], id_user);
+            snprintf(buff, sizeof buff, "uDatabase:%s:%s:%d", cmd[1], argv[2], id_user);
             send(client_socket, buff, strlen(buff), 0);
         }
         else if (strcmp(cmd[0], "cekCurrentDatabase") == 0)
@@ -218,38 +218,38 @@ int main(int argc, char *argv[])
         {
             if (strcmp(cmd[1], "DATABASE") == 0)
             {
-                snprintf(buff, sizeof buff, "DROPDATABASE:%s:%s", cmd[2], argv[2]);
+                snprintf(buff, sizeof buff, "dDatabase:%s:%s", cmd[2], argv[2]);
                 send(client_socket, buff, strlen(buff), 0);
             }
             else if (strcmp(cmd[1], "TABLE") == 0)
             {
-                snprintf(buff, sizeof buff, "DROPTABLE:%s:%s", cmd[2], argv[2]);
+                snprintf(buff, sizeof buff, "dTable:%s:%s", cmd[2], argv[2]);
                 send(client_socket, buff, strlen(buff), 0);
             }
             else if (strcmp(cmd[1], "COLUMN") == 0)
             {
-                snprintf(buff, sizeof buff, "DROPCOLUMN:%s:%s:%s", cmd[2], cmd[4], argv[2]);
+                snprintf(buff, sizeof buff, "dColumn:%s:%s:%s", cmd[2], cmd[4], argv[2]);
                 send(client_socket, buff, strlen(buff), 0);
             }
         }
         else if (strcmp(cmd[0], "INSERT") == 0 && strcmp(cmd[1], "INTO") == 0)
         {
-            snprintf(buff, sizeof buff, "INSERT:%s", temp);
+            snprintf(buff, sizeof buff, "insert:%s", temp);
             send(client_socket, buff, strlen(buff), 0);
         }
         else if (strcmp(cmd[0], "UPDATE") == 0)
         {
-            snprintf(buff, sizeof buff, "UPDATE:%s", temp);
+            snprintf(buff, sizeof buff, "update:%s", temp);
             send(client_socket, buff, strlen(buff), 0);
         }
         else if (strcmp(cmd[0], "DELETE") == 0)
         {
-            snprintf(buff, sizeof buff, "DELETE:%s", temp);
+            snprintf(buff, sizeof buff, "delete:%s", temp);
             send(client_socket, buff, strlen(buff), 0);
         }
         else if (strcmp(cmd[0], "SELECT") == 0)
         {
-            snprintf(buff, sizeof buff, "SELEECT:%s", temp);
+            snprintf(buff, sizeof buff, "select:%s", temp);
             send(client_socket, buff, strlen(buff), 0);
         }
         else if (strcmp(cmd[0], ":exit") != 0)
