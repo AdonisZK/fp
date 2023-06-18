@@ -449,7 +449,7 @@ int main()
                 char command[100][1000];
                 token = strtok(temp_buff, ":");
                 int i = 0;
-                char used_db[1000];
+                char currDB[1000];
 
                 while (token != NULL)
                 {
@@ -511,9 +511,10 @@ int main()
                 {
                     if (strcmp(command[3], "0") != 0)
                     {
-
-                        int allowed = isAllowedDb(command[2], command[1]);
-                        if (allowed != 1)
+                        int userAllowed = isAllowedDb(command[2], command[1]);
+                        printf("1 : %s", command[2]);
+                        printf("2 : %s", command[1]);
+                        if (userAllowed != 1)
                         {
                             char warning[] = "Access_database : You're Not Allowed";
                             send(new_socket, warning, strlen(warning), 0);
@@ -521,9 +522,9 @@ int main()
                         }
                         else
                         {
-                            strncpy(used_db, command[1], sizeof(command[1]));
+                            strncpy(currDB, command[1], sizeof(command[1]));
                             char warning[] = "Access_database : Allowed";
-                            printf("used_db = %s\n", used_db);
+                            printf("currDB = %s\n", currDB);
                             send(new_socket, warning, strlen(warning), 0);
                             bzero(buff, sizeof(buff));
                         }
@@ -534,10 +535,10 @@ int main()
                     printf("%s\n", command[1]);
                     char *toks;
 
-                    if (used_db[0] == '\0')
+                    if (currDB[0] == '\0')
                     {
-                        strcpy(used_db, "You're not selecting database yet");
-                        send(new_socket, used_db, strlen(used_db), 0);
+                        strcpy(currDB, "You're not selecting database yet");
+                        send(new_socket, currDB, strlen(currDB), 0);
                         bzero(buff, sizeof(buff));
                     }
                     else
@@ -557,11 +558,11 @@ int main()
                         }
 
                         char create_table[2000];
-                        // if (strlen(query_list[2]) > 0)
-                        // {
-                        //     query_list[2][strlen(query_list[2]) - 1] = '\0';
-                        // }
-                        snprintf(create_table, sizeof create_table, "../database/databases/%s/%s", used_db, query_list[2]);
+                        if (strlen(query_list[2]) > 0)
+                        {
+                            query_list[2][strlen(query_list[2]) - 1] = '\0';
+                        }
+                        snprintf(create_table, sizeof create_table, "../database/databases/%s/%s", currDB, query_list[2]);
                         int iteration = 0;
                         int data_iteration = 3;
                         struct table column;
@@ -597,9 +598,9 @@ int main()
                 }
                 else if (strcmp(command[0], "DROPDATABASE") == 0)
                 {
-                    int allowed = isAllowedDb(command[2], command[1]);
+                    int userAllowed = isAllowedDb(command[2], command[1]);
 
-                    if (allowed != 1)
+                    if (userAllowed != 1)
                     {
                         char warning[] = "Access_database : Not Allowed, no permission";
                         send(new_socket, warning, strlen(warning), 0);
@@ -618,10 +619,10 @@ int main()
                 }
                 else if (strcmp(command[0], "DROPTABLE") == 0)
                 {
-                    if (used_db[0] == '\0')
+                    if (currDB[0] == '\0')
                     {
-                        strcpy(used_db, "You're not selecting database yet");
-                        send(new_socket, used_db, strlen(used_db), 0);
+                        strcpy(currDB, "You're not selecting database yet");
+                        send(new_socket, currDB, strlen(currDB), 0);
                         bzero(buff, sizeof(buff));
                         continue;
                     }
@@ -631,7 +632,7 @@ int main()
                     {
                         command[1][strlen(command[1]) - 1] = '\0';
                     }
-                    snprintf(delete, sizeof delete, "databases/%s/%s", used_db, command[1]);
+                    snprintf(delete, sizeof delete, "databases/%s/%s", currDB, command[1]);
                     remove(delete);
                     char warning[] = "Table Has Been Removed";
                     send(new_socket, warning, strlen(warning), 0);
@@ -639,10 +640,10 @@ int main()
                 }
                 else if (strcmp(command[0], "DROPCOLUMN") == 0)
                 {
-                    if (used_db[0] == '\0')
+                    if (currDB[0] == '\0')
                     {
-                        strcpy(used_db, "You're not selecting database yet");
-                        send(new_socket, used_db, strlen(used_db), 0);
+                        strcpy(currDB, "You're not selecting database yet");
+                        send(new_socket, currDB, strlen(currDB), 0);
                         bzero(buff, sizeof(buff));
                         continue;
                     }
@@ -653,7 +654,7 @@ int main()
                     }
 
                     char create_table[2000];
-                    snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, command[2]);
+                    snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, command[2]);
                     printf("1 : %s\n", command[1]);
                     printf("2 : %s\n", command[2]);
                     int index = findColumn(create_table, command[1]);
@@ -673,10 +674,10 @@ int main()
                 }
                 else if (strcmp(command[0], "INSERT") == 0)
                 {
-                    if (used_db[0] == '\0')
+                    if (currDB[0] == '\0')
                     {
-                        strcpy(used_db, "You're not selecting database yet");
-                        send(new_socket, used_db, strlen(used_db), 0);
+                        strcpy(currDB, "You're not selecting database yet");
+                        send(new_socket, currDB, strlen(currDB), 0);
                         bzero(buff, sizeof(buff));
                         continue;
                     }
@@ -696,7 +697,7 @@ int main()
                     }
 
                     char create_table[2000];
-                    snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[2]);
+                    snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[2]);
                     FILE *file;
                     int total_column;
                     file = fopen(create_table, "r");
@@ -751,10 +752,10 @@ int main()
                 }
                 else if (strcmp(command[0], "UPDATE") == 0)
                 {
-                    if (used_db[0] == '\0')
+                    if (currDB[0] == '\0')
                     {
-                        strcpy(used_db, "You're not selecting database yet");
-                        send(new_socket, used_db, strlen(used_db), 0);
+                        strcpy(currDB, "You're not selecting database yet");
+                        send(new_socket, currDB, strlen(currDB), 0);
                         bzero(buff, sizeof(buff));
                         continue;
                     }
@@ -773,7 +774,7 @@ int main()
                     }
                     printf("total = %d\n", total);
                     char create_table[2000];
-                    snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[1]);
+                    snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[1]);
                     if (total == 5)
                     {
                         printf("buat table = %s, kolumn = %s", create_table, query_list[3]);
@@ -816,10 +817,10 @@ int main()
                 }
                 else if (strcmp(command[0], "DELETE") == 0)
                 {
-                    if (used_db[0] == '\0')
+                    if (currDB[0] == '\0')
                     {
-                        strcpy(used_db, "You're not selecting database yet");
-                        send(new_socket, used_db, strlen(used_db), 0);
+                        strcpy(currDB, "You're not selecting database yet");
+                        send(new_socket, currDB, strlen(currDB), 0);
                         bzero(buff, sizeof(buff));
                         continue;
                     }
@@ -838,7 +839,7 @@ int main()
                     }
                     printf("total = %d\n", total);
                     char create_table[2000];
-                    snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[2]);
+                    snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[2]);
                     if (total == 3)
                     {
                         deleteTable(create_table, query_list[2]);
@@ -869,10 +870,10 @@ int main()
                 }
                 else if (strcmp(command[0], "SELECT") == 0)
                 {
-                    if (used_db[0] == '\0')
+                    if (currDB[0] == '\0')
                     {
-                        strcpy(used_db, "You're not selecting database yet");
-                        send(new_socket, used_db, strlen(used_db), 0);
+                        strcpy(currDB, "You're not selecting database yet");
+                        send(new_socket, currDB, strlen(currDB), 0);
                         bzero(buff, sizeof(buff));
                         continue;
                     }
@@ -893,7 +894,7 @@ int main()
                     if (total == 4)
                     {
                         char create_table[2000];
-                        snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[3]);
+                        snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[3]);
                         printf("buat table = %s", create_table);
                         char perintahKolom[1000];
                         printf("masuk 4\n");
@@ -971,7 +972,7 @@ int main()
                     else if (total == 7 && strcmp(query_list[4], "WHERE") == 0)
                     {
                         char create_table[2000];
-                        snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[3]);
+                        snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[3]);
                         printf("buat table = %s", create_table);
                         char perintahKolom[1000];
                         printf("masuk 4\n");
@@ -1058,7 +1059,7 @@ int main()
                         if (strcmp(query_list[total - 3], "WHERE") != 0)
                         {
                             char create_table[2000];
-                            snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[total - 1]);
+                            snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[total - 1]);
                             printf("buat table = %s", create_table);
                             printf("tanpa where");
                             int index[100];

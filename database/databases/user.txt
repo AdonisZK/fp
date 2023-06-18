@@ -4,3 +4,4 @@ Username: Mafuyu, Password: root;
 Username: Asahina, Password: root;
 Username: Mizuki, Password: root;
 Username: Ena, Password: root;
+Username: arda, Password: asta;

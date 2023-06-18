@@ -2,3 +2,7 @@ Mafuyu database1
 Adonis database2
 Ena database3
 Ena databasedel
+arda database3
+arda amogus2
+LANGUAGE=en_US dbamogus
+LANGUAGE=en_US amoamogus
