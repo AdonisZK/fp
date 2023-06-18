@@ -138,6 +138,7 @@ int findColumn(char *table, char *column)
     char line[128];
     struct table user;
     int id, mark = 0;
+    printf("%s", table);
     file = fopen(table, "r"); // Open the file in read mode
     if (file == NULL)
     {
@@ -193,19 +194,19 @@ int deleteColumn(char *table, int index)
 
     while (fgets(line, sizeof(line), file) != NULL)
     {
-        if (currentLine == 0)
+        // if (currentLine == 0)
+        // {
+        //     // Write the total columns line to the temporary file
+        //     fputs(line, file1);
+        // }
+        // else
+        // {
+        // Skip the line if it corresponds to the specified index
+        if (currentLine != index)
         {
-            // Write the total columns line to the temporary file
             fputs(line, file1);
         }
-        else
-        {
-            // Skip the line if it corresponds to the specified index
-            if (currentLine != index)
-            {
-                fputs(line, file1);
-            }
-        }
+        // }
 
         currentLine++;
     }
@@ -556,10 +557,10 @@ int main()
                         }
 
                         char create_table[2000];
-                        if (strlen(query_list[2]) > 0)
-                        {
-                            query_list[2][strlen(query_list[2]) - 1] = '\0';
-                        }
+                        // if (strlen(query_list[2]) > 0)
+                        // {
+                        //     query_list[2][strlen(query_list[2]) - 1] = '\0';
+                        // }
                         snprintf(create_table, sizeof create_table, "../database/databases/%s/%s", used_db, query_list[2]);
                         int iteration = 0;
                         int data_iteration = 3;
@@ -585,8 +586,8 @@ int main()
                             return 0;
                         }
                         iteration--;
-                        fprintf(file, "Total Columns: %d\n", iteration--);
-                        for (int i = 0; i <= iteration; i++)
+                        // fprintf(file, "Total Columns: %d\n", iteration--);
+                        for (int i = 0; i < iteration; i++)
                         {
                             fprintf(file, "Data: %s, Type: %s\n", column.data[i], column.type[i]);
                         }
