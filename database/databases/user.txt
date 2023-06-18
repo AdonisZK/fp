@@ -6,3 +6,4 @@ Username: Mizuki, Password: root;
 Username: Ena, Password: root;
 Username: arda, Password: asta;
 Username: Emu, Password: root;
+Username: Nene, Password: root;

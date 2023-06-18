@@ -9,3 +9,6 @@ LANGUAGE=en_US amoamogus
 arda database1
 Emu database3
 Emu EmuDB
+Nene database3
+LANGUAGE=en_US TEST1
+Nene WXS

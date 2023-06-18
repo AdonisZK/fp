@@ -70,7 +70,7 @@ void append_log(char *command, char *name)
     FILE *file;
     char location[256];
     snprintf(location, sizeof location, "../database/log/log.log", name);
-    file = fopen(location, "ab");
+    file = fopen(location, "a");
 
     sprintf(write_log, "%d-%.2d-%.2d %.2d:%.2d:%.2d:%s:%s;\n",
             info->tm_year + 1900, info->tm_mon + 1, info->tm_mday, info->tm_hour, info->tm_min, info->tm_sec, name, command);
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 
     if (clientSocket < 0)
     {
-        printf("SERVER : Error when connecting.\n");
+        printf("SERVER : Error while connecting.\n");
         exit(1);
     }
 
@@ -256,8 +256,8 @@ int main(int argc, char *argv[])
         else if (strcmp(command[0], ":exit") != 0)
         {
             falseCommand = 1;
-            char warn[] = "Invalid Command";
-            send(clientSocket, warn, strlen(warn), 0);
+            char message[] = "Invalid Command";
+            send(clientSocket, message, strlen(message), 0);
         }
 
         if (falseCommand != 1)
