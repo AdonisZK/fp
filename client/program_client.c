@@ -101,7 +101,10 @@ int main(int argc, char *argv[])
     char currDB[256];
 
     if (geteuid() == 0)
+    {
         userAllowed = 1;
+        // strncpy(argv[2], "root", strlen(argv[2]));
+    }
     else
     {
         int id = geteuid();

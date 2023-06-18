@@ -15,7 +15,7 @@
 
 struct table
 {
-    int tot_column;
+    int totalAttr;
     char type[100][1000];
     char data[100][1000];
 };
@@ -87,7 +87,7 @@ int isAllowedDb(char *name, char *database)
     FILE *file;
     struct permission_db user;
     int mark = 0;
-    if (strlen(database) > 0)
+    if (strlen(database) > 0 && database[strlen(database) - 1] == ';')
     {
         database[strlen(database) - 1] = '\0';
     }
@@ -230,13 +230,13 @@ int deleteTable(char *table, char *namaTable)
     int index = -1;
     struct table temp_user;
 
-    for (int i = 0; i < user.tot_column; i++)
+    for (int i = 0; i < user.totalAttr; i++)
     {
         strcpy(temp_user.data[i], user.data[i]);
         strcpy(temp_user.type[i], user.type[i]);
     }
 
-    temp_user.tot_column = user.tot_column;
+    temp_user.totalAttr = user.totalAttr;
     fwrite(&temp_user, sizeof(temp_user), 1, file1);
     fclose(file);
     fclose(file1);
@@ -262,7 +262,7 @@ int updateColumn(char *table, int index, char *ganti)
 
         struct table temp_user;
         int iteration = 0;
-        for (int i = 0; i < user.tot_column; i++)
+        for (int i = 0; i < user.totalAttr; i++)
         {
             if (i == index && data_take != 0)
                 strcpy(temp_user.data[iteration], ganti);
@@ -274,7 +274,7 @@ int updateColumn(char *table, int index, char *ganti)
             printf("%s\n", temp_user.data[iteration]);
             iteration++;
         }
-        temp_user.tot_column = user.tot_column;
+        temp_user.totalAttr = user.totalAttr;
         fwrite(&temp_user, sizeof(temp_user), 1, file1);
         data_take++;
     }
@@ -303,7 +303,7 @@ int updateColumnWhere(char *table, int index, char *ganti, int change_index, cha
         struct table temp_user;
         int iteration = 0;
 
-        for (int i = 0; i < user.tot_column; i++)
+        for (int i = 0; i < user.totalAttr; i++)
         {
             if (i == index && data_take != 0 && strcmp(user.data[change_index], where) == 0)
                 strcpy(temp_user.data[iteration], ganti);
@@ -315,7 +315,7 @@ int updateColumnWhere(char *table, int index, char *ganti, int change_index, cha
             iteration++;
         }
 
-        temp_user.tot_column = user.tot_column;
+        temp_user.totalAttr = user.totalAttr;
         fwrite(&temp_user, sizeof(temp_user), 1, file1);
         data_take++;
     }
@@ -346,7 +346,7 @@ int deleteTableWhere(char *table, int index, char *column, char *where)
         struct table temp_user;
         int iteration = 0;
 
-        for (int i = 0; i < user.tot_column; i++)
+        for (int i = 0; i < user.totalAttr; i++)
         {
             if (i == index && data_take != 0 && strcmp(user.data[i], where) == 0)
                 mark = 1;
@@ -357,7 +357,7 @@ int deleteTableWhere(char *table, int index, char *column, char *where)
             iteration++;
         }
 
-        temp_user.tot_column = user.tot_column;
+        temp_user.totalAttr = user.totalAttr;
         if (mark != 1)
             fwrite(&temp_user, sizeof(temp_user), 1, file1);
         data_take++;
@@ -475,7 +475,7 @@ int main()
                         int exist = isUserExist(command[2]);
                         if (exist == 1)
                         {
-                            if (strlen(command[2]) > 0)
+                            if (strlen(command[2]) > 0 && command[2][strlen(command[2]) - 1] == ';')
                             {
                                 command[2][strlen(command[2]) - 1] = '\0';
                             }
@@ -498,7 +498,7 @@ int main()
                 else if (strcmp(command[0], "CREATEDATABASE") == 0)
                 {
                     char loc[2000];
-                    if (strlen(command[1]) > 0)
+                    if (strlen(command[1]) > 0 && command[1][strlen(command[1]) - 1] == ';')
                     {
                         command[1][strlen(command[1]) - 1] = '\0';
                     }
@@ -509,6 +509,7 @@ int main()
                 }
                 else if (strcmp(command[0], "USEDATABASE") == 0)
                 {
+                    printf("COMM3 : %s\n", command[3]);
                     if (strcmp(command[3], "0") != 0)
                     {
                         int userAllowed = isAllowedDb(command[2], command[1]);
@@ -528,6 +529,14 @@ int main()
                             send(new_socket, warning, strlen(warning), 0);
                             bzero(buff, sizeof(buff));
                         }
+                    }
+                    else
+                    {
+                        strncpy(currDB, command[1], sizeof(command[1]));
+                        char warning[] = "Access_database : Allowed";
+                        printf("currDB = %s\n", currDB);
+                        send(new_socket, warning, strlen(warning), 0);
+                        bzero(buff, sizeof(buff));
                     }
                 }
                 else if (strcmp(command[0], "CREATETABLE") == 0)
@@ -557,8 +566,13 @@ int main()
                             toks = strtok(NULL, "(), ");
                         }
 
+                        if (strlen(currDB) > 0 && currDB[strlen(currDB) - 1] == ';')
+                        {
+                            currDB[strlen(currDB) - 1] = '\0';
+                        }
+
                         char create_table[2000];
-                        if (strlen(query_list[2]) > 0)
+                        if (strlen(query_list[2]) > 0 && query_list[2][strlen(query_list[2]) - 1] == ';')
                         {
                             query_list[2][strlen(query_list[2]) - 1] = '\0';
                         }
@@ -577,8 +591,9 @@ int main()
                             iteration++;
                         }
 
-                        column.tot_column = iteration;
+                        column.totalAttr = iteration;
                         FILE *file;
+
                         printf("%s\n", create_table);
                         file = fopen(create_table, "w"); // Open the file in write mode
                         if (file == NULL)
@@ -713,7 +728,7 @@ int main()
                     {
                         struct table user;
                         fread(&user, sizeof(user), 1, file);
-                        total_column = user.tot_column;
+                        total_column = user.totalAttr;
                         fclose(file);
                     }
 
@@ -731,8 +746,8 @@ int main()
                         iteration++;
                     }
 
-                    column.tot_column = iteration;
-                    if (total_column != column.tot_column)
+                    column.totalAttr = iteration;
+                    if (total_column != column.totalAttr)
                     {
                         char warning[] = "YOUR INPUT NOT MATCH THE COLUMN";
                         send(new_socket, warning, strlen(warning), 0);
@@ -917,7 +932,7 @@ int main()
                                 {
                                     break;
                                 }
-                                for (int i = 0; i < user.tot_column; i++)
+                                for (int i = 0; i < user.totalAttr; i++)
                                 {
                                     char padding[2000];
                                     snprintf(padding, sizeof padding, "%s\t", user.data[i]);
@@ -951,7 +966,7 @@ int main()
                                 {
                                     break;
                                 }
-                                for (int i = 0; i < user.tot_column; i++)
+                                for (int i = 0; i < user.totalAttr; i++)
                                 {
                                     if (i == index)
                                     {
@@ -997,7 +1012,7 @@ int main()
                                 {
                                     break;
                                 }
-                                for (int i = 0; i < user.tot_column; i++)
+                                for (int i = 0; i < user.totalAttr; i++)
                                 {
                                     if (strcmp(user.data[index], query_list[6]) == 0)
                                     {
@@ -1035,7 +1050,7 @@ int main()
                                 {
                                     break;
                                 }
-                                for (int i = 0; i < user.tot_column; i++)
+                                for (int i = 0; i < user.totalAttr; i++)
                                 {
                                     if (i == index && (strcmp(user.data[change_index], query_list[6]) == 0 || strcmp(user.data[i], query_list[5]) == 0))
                                     {
