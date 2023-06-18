@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.json": "jsonc",
+        "*.html": "html",
+        "typeinfo": "c"
+    }
+}

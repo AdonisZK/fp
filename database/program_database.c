@@ -135,20 +135,42 @@ void insertPermission(char *name, char *database)
 int findColumn(char *table, char *column)
 {
     FILE *file;
+    char line[128];
     struct table user;
     int id, mark = 0;
-    file = fopen(table, "rb");
-    fread(&user, sizeof(user), 1, file);
-    int index = -1;
-
-    for (int i = 0; i < user.tot_column; i++)
+    file = fopen(table, "r"); // Open the file in read mode
+    if (file == NULL)
     {
-        if (strcmp(user.data[i], column) == 0)
-            index = i;
+        printf("Error in opening file.\n");
+        return -1;
+    }
+
+    int index = -1;
+    int currentIndex = 0;
+
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
+        sscanf(line, "Data: %[^,], Type: %[^\n]", user.data, user.type);
+        printf("data : %s", user.data);
+        int nameComparison = strcmp(user.data, column);
+
+        if (nameComparison == 0)
+        {
+            index = currentIndex;
+            break;
+        }
+
+        currentIndex++;
     }
 
     if (feof(file))
-        return -1;
+    {
+        printf("Reached end of file. ");
+    }
+    else
+    {
+        printf("Column '%s' found at index %d.\n", column, index);
+    }
 
     fclose(file);
     return index;
@@ -157,39 +179,42 @@ int findColumn(char *table, char *column)
 int deleteColumn(char *table, int index)
 {
     FILE *file, *file1;
-    struct table user;
-    int id, mark = 0;
-    file = fopen(table, "rb");
-    file1 = fopen("temp", "wb");
+    char line[128];
+    file = fopen(table, "r");   // Open the file in read mode
+    file1 = fopen("temp", "w"); // Open a temporary file in write mode
 
-    while (1)
+    if (file == NULL || file1 == NULL)
     {
-        fread(&user, sizeof(user), 1, file);
+        printf("Error in opening file.\n");
+        return -1;
+    }
 
-        if (feof(file))
-            break;
+    int currentLine = 0;
 
-        struct table temp_user;
-        int iteration = 0;
-
-        for (int i = 0; i < user.tot_column; i++)
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
+        if (currentLine == 0)
         {
-            if (i == index)
-                continue;
-
-            strcpy(temp_user.data[iteration], user.data[i]);
-            strcpy(temp_user.type[iteration], user.type[i]);
-            printf("%s\n", temp_user.data[iteration]);
-            iteration++;
+            // Write the total columns line to the temporary file
+            fputs(line, file1);
         }
-        temp_user.tot_column = user.tot_column - 1;
-        fwrite(&temp_user, sizeof(temp_user), 1, file1);
+        else
+        {
+            // Skip the line if it corresponds to the specified index
+            if (currentLine != index)
+            {
+                fputs(line, file1);
+            }
+        }
+
+        currentLine++;
     }
 
     fclose(file);
     fclose(file1);
-    remove(table);
-    rename("temp", table);
+    remove(table);         // Delete the original file
+    rename("temp", table); // Rename the temporary file to the original file name
+
     return 0;
 }
 
@@ -531,6 +556,10 @@ int main()
                         }
 
                         char create_table[2000];
+                        if (strlen(query_list[2]) > 0)
+                        {
+                            query_list[2][strlen(query_list[2]) - 1] = '\0';
+                        }
                         snprintf(create_table, sizeof create_table, "../database/databases/%s/%s", used_db, query_list[2]);
                         int iteration = 0;
                         int data_iteration = 3;
@@ -578,7 +607,7 @@ int main()
                     }
                     else
                     {
-                        char delete[20000];
+                        char delete[2000];
                         snprintf(delete, sizeof delete, "rm -r databases/%s", command[1]);
                         system(delete);
                         char warning[] = "Database Has Been Removed";
@@ -596,7 +625,11 @@ int main()
                         continue;
                     }
 
-                    char delete[20000];
+                    char delete[2000];
+                    if (strlen(command[1]) > 0)
+                    {
+                        command[1][strlen(command[1]) - 1] = '\0';
+                    }
                     snprintf(delete, sizeof delete, "databases/%s/%s", used_db, command[1]);
                     remove(delete);
                     char warning[] = "Table Has Been Removed";
@@ -613,8 +646,15 @@ int main()
                         continue;
                     }
 
-                    char create_table[20000];
+                    if (strlen(command[2]) > 0)
+                    {
+                        command[2][strlen(command[2]) - 1] = '\0';
+                    }
+
+                    char create_table[2000];
                     snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, command[2]);
+                    printf("1 : %s\n", command[1]);
+                    printf("2 : %s\n", command[2]);
                     int index = findColumn(create_table, command[1]);
 
                     if (index == -1)
@@ -654,7 +694,7 @@ int main()
                         toks = strtok(NULL, "\'(), ");
                     }
 
-                    char create_table[20000];
+                    char create_table[2000];
                     snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[2]);
                     FILE *file;
                     int total_column;
@@ -731,7 +771,7 @@ int main()
                         toks = strtok(NULL, "\'(),= ");
                     }
                     printf("total = %d\n", total);
-                    char create_table[20000];
+                    char create_table[2000];
                     snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[1]);
                     if (total == 5)
                     {
@@ -796,7 +836,7 @@ int main()
                         toks = strtok(NULL, "\'(),= ");
                     }
                     printf("total = %d\n", total);
-                    char create_table[20000];
+                    char create_table[2000];
                     snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[2]);
                     if (total == 3)
                     {
@@ -851,7 +891,7 @@ int main()
                     printf("ABC\n");
                     if (total == 4)
                     {
-                        char create_table[20000];
+                        char create_table[2000];
                         snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[3]);
                         printf("buat table = %s", create_table);
                         char perintahKolom[1000];
@@ -877,7 +917,7 @@ int main()
                                 }
                                 for (int i = 0; i < user.tot_column; i++)
                                 {
-                                    char padding[20000];
+                                    char padding[2000];
                                     snprintf(padding, sizeof padding, "%s\t", user.data[i]);
                                     strcat(buffers, padding);
                                 }
@@ -913,7 +953,7 @@ int main()
                                 {
                                     if (i == index)
                                     {
-                                        char padding[20000];
+                                        char padding[2000];
                                         snprintf(padding, sizeof padding, "%s\t", user.data[i]);
                                         strcat(buffers, padding);
                                     }
@@ -929,7 +969,7 @@ int main()
                     }
                     else if (total == 7 && strcmp(query_list[4], "WHERE") == 0)
                     {
-                        char create_table[20000];
+                        char create_table[2000];
                         snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[3]);
                         printf("buat table = %s", create_table);
                         char perintahKolom[1000];
@@ -959,7 +999,7 @@ int main()
                                 {
                                     if (strcmp(user.data[index], query_list[6]) == 0)
                                     {
-                                        char padding[20000];
+                                        char padding[2000];
                                         snprintf(padding, sizeof padding, "%s\t", user.data[i]);
                                         strcat(buffers, padding);
                                     }
@@ -997,7 +1037,7 @@ int main()
                                 {
                                     if (i == index && (strcmp(user.data[change_index], query_list[6]) == 0 || strcmp(user.data[i], query_list[5]) == 0))
                                     {
-                                        char padding[20000];
+                                        char padding[2000];
                                         snprintf(padding, sizeof padding, "%s\t", user.data[i]);
                                         strcat(buffers, padding);
                                     }
@@ -1016,7 +1056,7 @@ int main()
                         printf("ini query 3 %s", query_list[total - 3]);
                         if (strcmp(query_list[total - 3], "WHERE") != 0)
                         {
-                            char create_table[20000];
+                            char create_table[2000];
                             snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, query_list[total - 1]);
                             printf("buat table = %s", create_table);
                             printf("tanpa where");
