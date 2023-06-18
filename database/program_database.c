@@ -11,28 +11,28 @@
 #include <fnmatch.h>
 #include <ctype.h>
 
-#define PORT 5050
+#define PORT 8080
 
 struct table
 {
     int totalAttr;
-    char type[100][1000];
-    char data[100][1000];
+    char type[128][1024];
+    char data[128][1024];
 };
 
 struct permission
 {
-    char name[1000];
-    char pass[1000];
+    char name[1024];
+    char pass[1024];
 };
 
 struct permission_db
 {
-    char database[1000];
-    char name[1000];
+    char database[1024];
+    char name[1024];
 };
 
-int isUserExist(char *uname)
+int is_user_exist(char *uname)
 {
     FILE *file;
     char line[128];
@@ -41,7 +41,7 @@ int isUserExist(char *uname)
     file = fopen("../database/databases/user.txt", "r");
     if (file == NULL)
     {
-        printf("Cannot open file\n");
+        printf("Failed to open file\n");
         return 0;
     }
 
@@ -49,7 +49,10 @@ int isUserExist(char *uname)
     {
         sscanf(line, "Username: %[^,]", user.name);
 
-        strcat(user.name, ";");
+        if (strlen(uname) > 0 && uname[strlen(uname) - 1] == ';')
+        {
+            uname[strlen(uname) - 1] = '\0';
+        }
         printf("%s", user.name);
         printf("%s", uname);
         int nameComparison = strcmp(user.name, uname);
@@ -66,7 +69,7 @@ int isUserExist(char *uname)
     return 0; // User does not exist
 }
 
-void createUser(char *name, char *pass)
+void create_user(char *name, char *pass)
 {
     FILE *file;
     file = fopen("databases/user.txt", "a");
@@ -82,7 +85,7 @@ void createUser(char *name, char *pass)
     fclose(file);
 }
 
-int isAllowedDb(char *name, char *database)
+int is_allowed_db(char *name, char *database)
 {
     FILE *file;
     struct permission_db user;
@@ -116,7 +119,7 @@ int isAllowedDb(char *name, char *database)
     return mark;
 }
 
-void insertPermission(char *name, char *database)
+void write_permission(char *name, char *database)
 {
     struct permission_db user;
 
@@ -132,7 +135,7 @@ void insertPermission(char *name, char *database)
     fclose(file);
 }
 
-int findColumn(char *table, char *column)
+int find_column(char *table, char *column)
 {
     FILE *file;
     char line[128];
@@ -376,7 +379,7 @@ void writelog(char *command, char *name)
     time(&times);
     info = localtime(&times);
 
-    char info_log[1000];
+    char info_log[1024];
 
     FILE *file;
     file = fopen("logUser.log", "ab");
@@ -446,10 +449,10 @@ int main()
                 char *token;
                 char temp_buff[32000];
                 strcpy(temp_buff, buff);
-                char command[100][1000];
+                char command[128][1024];
                 token = strtok(temp_buff, ":");
                 int i = 0;
-                char currDB[1000];
+                char currDB[1024];
 
                 while (token != NULL)
                 {
@@ -460,7 +463,7 @@ int main()
                 if (strcmp(command[0], "CREATEUSER") == 0)
                 {
                     if (strcmp(command[3], "0") == 0)
-                        createUser(command[1], command[2]);
+                        create_user(command[1], command[2]);
                     else
                     {
                         char warning[] = "Not Allowed: Not have permission";
@@ -472,14 +475,14 @@ int main()
                 {
                     if (strcmp(command[3], "0") == 0)
                     {
-                        int exist = isUserExist(command[2]);
+                        int exist = is_user_exist(command[2]);
                         if (exist == 1)
                         {
                             if (strlen(command[2]) > 0 && command[2][strlen(command[2]) - 1] == ';')
                             {
                                 command[2][strlen(command[2]) - 1] = '\0';
                             }
-                            insertPermission(command[2], command[1]);
+                            write_permission(command[2], command[1]);
                         }
                         else
                         {
@@ -505,16 +508,16 @@ int main()
                     snprintf(loc, sizeof loc, "databases/%s", command[1]);
                     printf("location = %s, name = %s , database = %s\n", loc, command[2], command[1]);
                     mkdir(loc, 0777);
-                    insertPermission(command[2], command[1]);
+                    write_permission(command[2], command[1]);
                 }
                 else if (strcmp(command[0], "USEDATABASE") == 0)
                 {
-                    printf("COMM3 : %s\n", command[3]);
+                    // printf("COMM3 : %s\n", command[3]);
                     if (strcmp(command[3], "0") != 0)
                     {
-                        int userAllowed = isAllowedDb(command[2], command[1]);
-                        printf("1 : %s", command[2]);
-                        printf("2 : %s", command[1]);
+                        int userAllowed = is_allowed_db(command[2], command[1]);
+                        // printf("1 : %s", command[2]);
+                        // printf("2 : %s", command[1]);
                         if (userAllowed != 1)
                         {
                             char warning[] = "Access_database : You're Not Allowed";
@@ -552,7 +555,7 @@ int main()
                     }
                     else
                     {
-                        char query_list[100][1000];
+                        char query_list[128][1024];
                         char temp_cmd[2000];
                         snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                         toks = strtok(temp_cmd, "(), ");
@@ -613,7 +616,7 @@ int main()
                 }
                 else if (strcmp(command[0], "DROPDATABASE") == 0)
                 {
-                    int userAllowed = isAllowedDb(command[2], command[1]);
+                    int userAllowed = is_allowed_db(command[2], command[1]);
 
                     if (userAllowed != 1)
                     {
@@ -663,16 +666,20 @@ int main()
                         continue;
                     }
 
-                    if (strlen(command[2]) > 0)
+                    if (strlen(command[2]) > 0 && command[2][strlen(command[2]) - 1] == ';')
                     {
                         command[2][strlen(command[2]) - 1] = '\0';
+                    }
+                    if (strlen(currDB) > 0 && currDB[strlen(currDB) - 1] == ';')
+                    {
+                        currDB[strlen(currDB) - 1] = '\0';
                     }
 
                     char create_table[2000];
                     snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, command[2]);
                     printf("1 : %s\n", command[1]);
                     printf("2 : %s\n", command[2]);
-                    int index = findColumn(create_table, command[1]);
+                    int index = find_column(create_table, command[1]);
 
                     if (index == -1)
                     {
@@ -697,7 +704,7 @@ int main()
                         continue;
                     }
 
-                    char query_list[100][1000];
+                    char query_list[128][1024];
                     char temp_cmd[2000];
                     snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                     char *toks;
@@ -774,7 +781,7 @@ int main()
                         bzero(buff, sizeof(buff));
                         continue;
                     }
-                    char query_list[100][1000];
+                    char query_list[128][1024];
                     char temp_cmd[2000];
                     snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                     char *toks;
@@ -793,7 +800,7 @@ int main()
                     if (total == 5)
                     {
                         printf("buat table = %s, kolumn = %s", create_table, query_list[3]);
-                        int index = findColumn(create_table, query_list[3]);
+                        int index = find_column(create_table, query_list[3]);
                         if (index == -1)
                         {
                             char warning[] = "Column Not Found";
@@ -807,7 +814,7 @@ int main()
                     else if (total == 8)
                     {
                         printf("buat table = %s, kolumn = %s", create_table, query_list[3]);
-                        int index = findColumn(create_table, query_list[3]);
+                        int index = find_column(create_table, query_list[3]);
                         if (index == -1)
                         {
                             char warning[] = "Column Not Found";
@@ -816,7 +823,7 @@ int main()
                             continue;
                         }
                         printf("%s\n", query_list[7]);
-                        int change_index = findColumn(create_table, query_list[6]);
+                        int change_index = find_column(create_table, query_list[6]);
                         updateColumnWhere(create_table, index, query_list[4], change_index, query_list[7]);
                     }
                     else
@@ -839,7 +846,7 @@ int main()
                         bzero(buff, sizeof(buff));
                         continue;
                     }
-                    char query_list[100][1000];
+                    char query_list[128][1024];
                     char temp_cmd[2000];
                     snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                     char *toks;
@@ -861,7 +868,7 @@ int main()
                     }
                     else if (total == 6)
                     {
-                        int index = findColumn(create_table, query_list[4]);
+                        int index = find_column(create_table, query_list[4]);
                         if (index == -1)
                         {
                             char warning[] = "Column Not Found";
@@ -892,7 +899,7 @@ int main()
                         bzero(buff, sizeof(buff));
                         continue;
                     }
-                    char query_list[100][1000];
+                    char query_list[128][1024];
                     char temp_cmd[2000];
                     snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                     char *toks;
@@ -911,7 +918,7 @@ int main()
                         char create_table[2000];
                         snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[3]);
                         printf("buat table = %s", create_table);
-                        char perintahKolom[1000];
+                        char perintahKolom[1024];
                         printf("masuk 4\n");
                         if (strcmp(query_list[1], "*") == 0)
                         {
@@ -947,7 +954,7 @@ int main()
                         }
                         else
                         {
-                            int index = findColumn(create_table, query_list[1]);
+                            int index = find_column(create_table, query_list[1]);
                             printf("%d\n", index);
                             FILE *file, *file1;
                             struct table user;
@@ -989,7 +996,7 @@ int main()
                         char create_table[2000];
                         snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[3]);
                         printf("buat table = %s", create_table);
-                        char perintahKolom[1000];
+                        char perintahKolom[1024];
                         printf("masuk 4\n");
                         if (strcmp(query_list[1], "*") == 0)
                         {
@@ -999,7 +1006,7 @@ int main()
                             file = fopen(create_table, "rb");
                             char buffers[40000];
                             char sendDatabase[40000];
-                            int index = findColumn(create_table, query_list[5]);
+                            int index = find_column(create_table, query_list[5]);
                             printf("%d\n", index);
                             bzero(buff, sizeof(buff));
                             bzero(sendDatabase, sizeof(sendDatabase));
@@ -1030,12 +1037,12 @@ int main()
                         }
                         else
                         {
-                            int index = findColumn(create_table, query_list[1]);
+                            int index = find_column(create_table, query_list[1]);
                             printf("%d\n", index);
                             FILE *file, *file1;
                             struct table user;
                             int id, mark = 0;
-                            int change_index = findColumn(create_table, query_list[5]);
+                            int change_index = find_column(create_table, query_list[5]);
                             file = fopen(create_table, "rb");
                             char buffers[40000];
                             char sendDatabase[40000];
@@ -1077,11 +1084,11 @@ int main()
                             snprintf(create_table, sizeof create_table, "databases/%s/%s", currDB, query_list[total - 1]);
                             printf("buat table = %s", create_table);
                             printf("tanpa where");
-                            int index[100];
+                            int index[128];
                             int iteration = 0;
                             for (int i = 1; i < total - 2; i++)
                             {
-                                index[iteration] = findColumn(create_table, query_list[i]);
+                                index[iteration] = find_column(create_table, query_list[i]);
                                 printf("%d\n", index[iteration]);
                                 iteration++;
                             }

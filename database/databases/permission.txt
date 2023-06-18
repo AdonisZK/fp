@@ -6,3 +6,6 @@ arda database3
 arda amogus2
 LANGUAGE=en_US dbamogus
 LANGUAGE=en_US amoamogus
+arda database1
+Emu database3
+Emu EmuDB

@@ -2,6 +2,7 @@
     "files.associations": {
         "*.json": "jsonc",
         "*.html": "html",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "in.h": "c"
     }
 }

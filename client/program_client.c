@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <math.h>
 
-#define PORT 5050
+#define PORT 8080
 
 struct permission
 {
