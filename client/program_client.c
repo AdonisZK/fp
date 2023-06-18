@@ -204,11 +204,6 @@ int main(int argc, char *argv[])
             snprintf(buff, sizeof buff, "USEDATABASE:%s:%s:%d", command[1], argv[2], id_user);
             send(client_socket, buff, strlen(buff), 0);
         }
-        else if (strcmp(command[0], "cekCurrentDatabase") == 0)
-        {
-            snprintf(buff, sizeof buff, "%s", command[0]);
-            send(client_socket, buff, strlen(buff), 0);
-        }
         else if (strcmp(command[0], "DROP") == 0)
         {
             if (strcmp(command[1], "DATABASE") == 0)

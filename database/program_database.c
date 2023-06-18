@@ -86,22 +86,34 @@ int isAllowedDb(char *name, char *database)
 {
     FILE *file;
     struct permission_db user;
-    int id, mark = 0;
-    printf("name = %s  database = %s", name, database);
-    file = fopen("../database/databases/permission.txt", "rb");
-    while (1)
+    int mark = 0;
+    if (strlen(database) > 0)
     {
-        fread(&user, sizeof(user), 1, file);
-        if (strcmp(user.name, name) == 0)
+        database[strlen(database) - 1] = '\0';
+    }
+    printf("name = %s  database = %s\n", name, database);
+    file = fopen("databases/permission.txt", "r"); // Open the file in read mode
+    if (file == NULL)
+    {
+        printf("[-] Error in opening file.\n");
+        return 0;
+    }
+    while (fscanf(file, "%s %s", user.name, user.database) != EOF)
+    {
+        int nameComparison = strcmp(user.name, name);
+        int passComparison = strcmp(user.database, database);
+
+        printf("Name comparison result: %d\n", nameComparison);
+        printf("Password comparison result: %d\n", passComparison);
+
+        if (strcmp(user.name, name) == 0 && strcmp(user.database, database) == 0)
         {
-            if (strcmp(user.database, database) == 0)
-                return 1;
-        }
-        if (feof(file))
+            mark = 1;
             break;
+        }
     }
     fclose(file);
-    return 0;
+    return mark;
 }
 
 void insertPermission(char *name, char *database)
@@ -115,8 +127,8 @@ void insertPermission(char *name, char *database)
 
     char fname[] = {"databases/permission.txt"};
     FILE *file;
-    file = fopen(fname, "ab");
-    fwrite(&user, sizeof(user), 1, file);
+    file = fopen(fname, "a");
+    fprintf(file, "\n%s %s", user.name, user.database);
     fclose(file);
 }
 
@@ -436,7 +448,13 @@ int main()
                     {
                         int exist = isUserExist(command[2]);
                         if (exist == 1)
+                        {
+                            if (strlen(command[2]) > 0)
+                            {
+                                command[2][strlen(command[2]) - 1] = '\0';
+                            }
                             insertPermission(command[2], command[1]);
+                        }
                         else
                         {
                             char warning[] = "User Not Found";
@@ -453,7 +471,11 @@ int main()
                 }
                 else if (strcmp(command[0], "CREATEDATABASE") == 0)
                 {
-                    char loc[20000];
+                    char loc[2000];
+                    if (strlen(command[1]) > 0)
+                    {
+                        command[1][strlen(command[1]) - 1] = '\0';
+                    }
                     snprintf(loc, sizeof loc, "databases/%s", command[1]);
                     printf("location = %s, name = %s , database = %s\n", loc, command[2], command[1]);
                     mkdir(loc, 0777);
@@ -463,6 +485,7 @@ int main()
                 {
                     if (strcmp(command[3], "0") != 0)
                     {
+
                         int allowed = isAllowedDb(command[2], command[1]);
                         if (allowed != 1)
                         {
@@ -479,15 +502,6 @@ int main()
                             bzero(buff, sizeof(buff));
                         }
                     }
-                }
-                else if (strcmp(command[0], "cekCurrentDatabase") == 0)
-                {
-                    if (used_db[0] == '\0')
-                    {
-                        strcpy(used_db, "You're not selecting database yet");
-                    }
-                    send(new_socket, used_db, strlen(used_db), 0);
-                    bzero(buff, sizeof(buff));
                 }
                 else if (strcmp(command[0], "CREATETABLE") == 0)
                 {
@@ -516,7 +530,7 @@ int main()
                             toks = strtok(NULL, "(), ");
                         }
 
-                        char create_table[20000];
+                        char create_table[2000];
                         snprintf(create_table, sizeof create_table, "../database/databases/%s/%s", used_db, query_list[2]);
                         int iteration = 0;
                         int data_iteration = 3;
@@ -533,11 +547,21 @@ int main()
                         }
 
                         column.tot_column = iteration;
-                        printf("iteration = %d\n", iteration);
                         FILE *file;
                         printf("%s\n", create_table);
-                        file = fopen(create_table, "ab");
-                        fwrite(&column, sizeof(column), 1, file);
+                        file = fopen(create_table, "w"); // Open the file in write mode
+                        if (file == NULL)
+                        {
+                            printf("[-] Error in opening file.\n");
+                            return 0;
+                        }
+                        iteration--;
+                        fprintf(file, "Total Columns: %d\n", iteration--);
+                        for (int i = 0; i <= iteration; i++)
+                        {
+                            fprintf(file, "Data: %s, Type: %s\n", column.data[i], column.type[i]);
+                        }
+
                         fclose(file);
                     }
                 }

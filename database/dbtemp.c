@@ -1018,6 +1018,7 @@ int main()
     }
 
     close(new_socket);
+    close(sockfd);
 
     return 0;
 }
