@@ -19,23 +19,6 @@ struct permission
     char pass[10000];
 };
 
-void trim(char *str)
-{
-    // Trim leading whitespaces
-    while (isspace((unsigned char)*str))
-    {
-        str++;
-    }
-
-    // Trim trailing whitespaces
-    char *end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end))
-    {
-        end--;
-    }
-    *(end + 1) = '\0';
-}
-
 int checkPermission(char *uname, char *pass)
 {
     FILE *file;
@@ -70,7 +53,7 @@ int checkPermission(char *uname, char *pass)
     return 0; // No username and password match
 }
 
-void writeLog(char *cmd, char *name)
+void Log(char *cmd, char *name)
 {
     time_t times;
     struct tm *info;
@@ -107,12 +90,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (username == NULL || password == NULL)
-    {
-        printf("Missing username or password.\n");
-        return 0;
-    }
-
     int allowed = 0;
     int id_user = geteuid();
     char used_db[1000];
@@ -133,7 +110,22 @@ int main(int argc, char *argv[])
         id_user = id;
     }
 
-    if (!allowed)
+    if (id_user == 0)
+    {
+    }
+    else if (username == NULL || password == NULL)
+    {
+        printf("Missing username or password.\n");
+        return 0;
+    }
+
+    // Check if running with sudo
+    if (allowed || id_user == 0)
+    {
+        printf("Authentication successful\n");
+        // Continue with the rest of the program
+    }
+    else
     {
         printf("Authentication failed. Exiting...\n");
         return 0;
@@ -274,7 +266,7 @@ int main(int argc, char *argv[])
                 strcpy(sender, "root");
             else
                 strcpy(sender, argv[2]);
-            writeLog(temp, sender);
+            Log(temp, sender);
         }
 
         if (strcmp(cmd[0], ":exit") == 0)

@@ -1,2 +1,4 @@
 Username: Adonis, Password: root;
 Username: khonsu, Password: khonsu123;
+Username: Mafuyu, Password: root;
+Username: Asahina, Password: root;

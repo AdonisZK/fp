@@ -61,7 +61,7 @@ void createUser(char *name, char *pass)
         return;
     }
 
-    fprintf(file, "Username: %s, Password: %s\n", name, pass);
+    fprintf(file, "\nUsername: %s, Password: %s", name, pass);
 
     fclose(file);
 }
