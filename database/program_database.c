@@ -1,53 +1,69 @@
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <time.h>
+#include <unistd.h>
+#include <fnmatch.h>
+#include <ctype.h>
 
 #define PORT 5050
 
 struct table
 {
     int tot_column;
-    char type[100][10000];
-    char data[100][10000];
+    char type[100][1000];
+    char data[100][1000];
 };
 
 struct permission
 {
-    char name[10000];
-    char pass[10000];
+    char name[1000];
+    char pass[1000];
 };
 
 struct permission_db
 {
-    char database[10000];
-    char name[10000];
+    char database[1000];
+    char name[1000];
 };
 
 int isUserExist(char *uname)
 {
     FILE *file;
+    char line[128];
     struct permission user;
 
-    int id, mark = 0;
-
     file = fopen("../database/databases/user.txt", "r");
-    while (1)
+    if (file == NULL)
     {
-        fread(&user, sizeof(user), 1, file);
-        if (strcmp(user.name, uname) == 0)
-            return 1;
-        if (feof(file))
-            break;
+        printf("Cannot open file\n");
+        return 0;
     }
+
+    while (fgets(line, sizeof(line), file) != NULL)
+    {
+        sscanf(line, "Username: %[^,]", user.name);
+
+        strcat(user.name, ";");
+        printf("%s", user.name);
+        printf("%s", uname);
+        int nameComparison = strcmp(user.name, uname);
+        printf("Name Comparison: %d\n", nameComparison);
+
+        if (nameComparison == 0)
+        {
+            fclose(file);
+            return 1; // User exists
+        }
+    }
+
     fclose(file);
-    return 0;
+    return 0; // User does not exist
 }
 
 void createUser(char *name, char *pass)
@@ -315,7 +331,7 @@ int deleteTableWhere(char *table, int index, char *column, char *where)
     return 0;
 }
 
-void writelog(char *cmd, char *name)
+void writelog(char *command, char *name)
 {
     time_t times;
     struct tm *info;
@@ -327,7 +343,7 @@ void writelog(char *cmd, char *name)
     FILE *file;
     file = fopen("logUser.log", "ab");
 
-    sprintf(info_log, "%d-%.2d-%.2d %.2d:%.2d:%.2d::%s::%s\n", info->tm_year + 1900, info->tm_mon + 1, info->tm_mday, info->tm_hour, info->tm_min, info->tm_sec, name, cmd);
+    sprintf(info_log, "%d-%.2d-%.2d %.2d:%.2d:%.2d::%s::%s\n", info->tm_year + 1900, info->tm_mon + 1, info->tm_mday, info->tm_hour, info->tm_min, info->tm_sec, name, command);
 
     fputs(info_log, file);
     fclose(file);
@@ -364,15 +380,15 @@ int main()
     ret = bind(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
     if (ret < 0)
     {
-        printf("[-]Error in binding.\n");
+        printf("[-] Error in binding.\n");
         exit(1);
     }
-    printf("[+]Bind to port %d\n", PORT);
+    printf("[+] Bind to port %d\n", PORT);
 
     if (listen(sockfd, 10) == 0)
-        printf("[+]Listening....\n");
+        printf("[+] Listening....\n");
     else
-        printf("[-]Error in binding.\n");
+        printf("[-] Error in binding.\n");
 
     while (1)
     {
@@ -392,21 +408,21 @@ int main()
                 char *token;
                 char temp_buff[32000];
                 strcpy(temp_buff, buff);
-                char cmd[100][10000];
+                char command[100][1000];
                 token = strtok(temp_buff, ":");
                 int i = 0;
                 char used_db[1000];
 
                 while (token != NULL)
                 {
-                    strcpy(cmd[i], token);
+                    strcpy(command[i], token);
                     i++;
                     token = strtok(NULL, ":");
                 }
-                if (strcmp(cmd[0], "CREATEUSER") == 0)
+                if (strcmp(command[0], "CREATEUSER") == 0)
                 {
-                    if (strcmp(cmd[3], "0") == 0)
-                        createUser(cmd[1], cmd[2]);
+                    if (strcmp(command[3], "0") == 0)
+                        createUser(command[1], command[2]);
                     else
                     {
                         char warning[] = "Not Allowed: Not have permission";
@@ -414,13 +430,13 @@ int main()
                         bzero(buff, sizeof(buff));
                     }
                 }
-                else if (strcmp(cmd[0], "GRANTPERMISSION") == 0)
+                else if (strcmp(command[0], "GRANTPERMISSION") == 0)
                 {
-                    if (strcmp(cmd[3], "0") == 0)
+                    if (strcmp(command[3], "0") == 0)
                     {
-                        int exist = isUserExist(cmd[2]);
+                        int exist = isUserExist(command[2]);
                         if (exist == 1)
-                            insertPermission(cmd[2], cmd[1]);
+                            insertPermission(command[2], command[1]);
                         else
                         {
                             char warning[] = "User Not Found";
@@ -435,19 +451,19 @@ int main()
                         bzero(buff, sizeof(buff));
                     }
                 }
-                else if (strcmp(cmd[0], "CREATEDATABASE") == 0)
+                else if (strcmp(command[0], "CREATEDATABASE") == 0)
                 {
                     char loc[20000];
-                    snprintf(loc, sizeof loc, "databases/%s", cmd[1]);
-                    printf("location = %s, name = %s , database = %s\n", loc, cmd[2], cmd[1]);
+                    snprintf(loc, sizeof loc, "databases/%s", command[1]);
+                    printf("location = %s, name = %s , database = %s\n", loc, command[2], command[1]);
                     mkdir(loc, 0777);
-                    insertPermission(cmd[2], cmd[1]);
+                    insertPermission(command[2], command[1]);
                 }
-                else if (strcmp(cmd[0], "USEDATABASE") == 0)
+                else if (strcmp(command[0], "USEDATABASE") == 0)
                 {
-                    if (strcmp(cmd[3], "0") != 0)
+                    if (strcmp(command[3], "0") != 0)
                     {
-                        int allowed = isAllowedDb(cmd[2], cmd[1]);
+                        int allowed = isAllowedDb(command[2], command[1]);
                         if (allowed != 1)
                         {
                             char warning[] = "Access_database : You're Not Allowed";
@@ -456,7 +472,7 @@ int main()
                         }
                         else
                         {
-                            strncpy(used_db, cmd[1], sizeof(cmd[1]));
+                            strncpy(used_db, command[1], sizeof(command[1]));
                             char warning[] = "Access_database : Allowed";
                             printf("used_db = %s\n", used_db);
                             send(new_socket, warning, strlen(warning), 0);
@@ -464,7 +480,7 @@ int main()
                         }
                     }
                 }
-                else if (strcmp(cmd[0], "cekCurrentDatabase") == 0)
+                else if (strcmp(command[0], "cekCurrentDatabase") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -473,9 +489,9 @@ int main()
                     send(new_socket, used_db, strlen(used_db), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "CREATETABLE") == 0)
+                else if (strcmp(command[0], "CREATETABLE") == 0)
                 {
-                    printf("%s\n", cmd[1]);
+                    printf("%s\n", command[1]);
                     char *toks;
 
                     if (used_db[0] == '\0')
@@ -486,9 +502,9 @@ int main()
                     }
                     else
                     {
-                        char query_list[100][10000];
-                        char temp_cmd[20000];
-                        snprintf(temp_cmd, sizeof temp_cmd, "%s", cmd[1]);
+                        char query_list[100][1000];
+                        char temp_cmd[2000];
+                        snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                         toks = strtok(temp_cmd, "(), ");
                         int total = 0;
 
@@ -525,9 +541,9 @@ int main()
                         fclose(file);
                     }
                 }
-                else if (strcmp(cmd[0], "DROPDATABASE") == 0)
+                else if (strcmp(command[0], "DROPDATABASE") == 0)
                 {
-                    int allowed = isAllowedDb(cmd[2], cmd[1]);
+                    int allowed = isAllowedDb(command[2], command[1]);
 
                     if (allowed != 1)
                     {
@@ -539,14 +555,14 @@ int main()
                     else
                     {
                         char delete[20000];
-                        snprintf(delete, sizeof delete, "rm -r databases/%s", cmd[1]);
+                        snprintf(delete, sizeof delete, "rm -r databases/%s", command[1]);
                         system(delete);
                         char warning[] = "Database Has Been Removed";
                         send(new_socket, warning, strlen(warning), 0);
                         bzero(buff, sizeof(buff));
                     }
                 }
-                else if (strcmp(cmd[0], "DROPTABLE") == 0)
+                else if (strcmp(command[0], "DROPTABLE") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -557,13 +573,13 @@ int main()
                     }
 
                     char delete[20000];
-                    snprintf(delete, sizeof delete, "databases/%s/%s", used_db, cmd[1]);
+                    snprintf(delete, sizeof delete, "databases/%s/%s", used_db, command[1]);
                     remove(delete);
                     char warning[] = "Table Has Been Removed";
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "DROPCOLUMN") == 0)
+                else if (strcmp(command[0], "DROPCOLUMN") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -574,8 +590,8 @@ int main()
                     }
 
                     char create_table[20000];
-                    snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, cmd[2]);
-                    int index = findColumn(create_table, cmd[1]);
+                    snprintf(create_table, sizeof create_table, "databases/%s/%s", used_db, command[2]);
+                    int index = findColumn(create_table, command[1]);
 
                     if (index == -1)
                     {
@@ -590,7 +606,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "INSERT") == 0)
+                else if (strcmp(command[0], "INSERT") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -600,9 +616,9 @@ int main()
                         continue;
                     }
 
-                    char query_list[100][10000];
-                    char temp_cmd[20000];
-                    snprintf(temp_cmd, sizeof temp_cmd, "%s", cmd[1]);
+                    char query_list[100][1000];
+                    char temp_cmd[2000];
+                    snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                     char *toks;
                     toks = strtok(temp_cmd, "\'(), ");
                     int total = 0;
@@ -668,7 +684,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "UPDATE") == 0)
+                else if (strcmp(command[0], "UPDATE") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -677,9 +693,9 @@ int main()
                         bzero(buff, sizeof(buff));
                         continue;
                     }
-                    char query_list[100][10000];
-                    char temp_cmd[20000];
-                    snprintf(temp_cmd, sizeof temp_cmd, "%s", cmd[1]);
+                    char query_list[100][1000];
+                    char temp_cmd[2000];
+                    snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                     char *toks;
                     toks = strtok(temp_cmd, "\'(),= ");
                     int total = 0;
@@ -733,7 +749,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "DELETE") == 0)
+                else if (strcmp(command[0], "DELETE") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -742,9 +758,9 @@ int main()
                         bzero(buff, sizeof(buff));
                         continue;
                     }
-                    char query_list[100][10000];
-                    char temp_cmd[20000];
-                    snprintf(temp_cmd, sizeof temp_cmd, "%s", cmd[1]);
+                    char query_list[100][1000];
+                    char temp_cmd[2000];
+                    snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                     char *toks;
                     toks = strtok(temp_cmd, "\'(),= ");
                     int total = 0;
@@ -786,7 +802,7 @@ int main()
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));
                 }
-                else if (strcmp(cmd[0], "SELECT") == 0)
+                else if (strcmp(command[0], "SELECT") == 0)
                 {
                     if (used_db[0] == '\0')
                     {
@@ -795,9 +811,9 @@ int main()
                         bzero(buff, sizeof(buff));
                         continue;
                     }
-                    char query_list[100][10000];
-                    char temp_cmd[20000];
-                    snprintf(temp_cmd, sizeof temp_cmd, "%s", cmd[1]);
+                    char query_list[100][1000];
+                    char temp_cmd[2000];
+                    snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
                     char *toks;
                     toks = strtok(temp_cmd, "\'(),= ");
                     int total = 0;
@@ -995,9 +1011,9 @@ int main()
                         }
                     }
                 }
-                else if (strcmp(cmd[0], "log") == 0)
+                else if (strcmp(command[0], "log") == 0)
                 {
-                    writelog(cmd[1], cmd[2]);
+                    writelog(command[1], command[2]);
                     char warning[] = "\n";
                     send(new_socket, warning, strlen(warning), 0);
                     bzero(buff, sizeof(buff));

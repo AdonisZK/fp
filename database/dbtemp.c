@@ -351,10 +351,10 @@ int main()
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
     {
-        printf("[-]Error connection.\n");
+        printf("[-] Error connection.\n");
         exit(1);
     }
-    printf("[+]Socket created.\n");
+    printf("[+] Socket created.\n");
 
     memset(&serverAddr, '\0', sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
@@ -364,15 +364,15 @@ int main()
     ret = bind(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
     if (ret < 0)
     {
-        printf("[-]Error in binding.\n");
+        printf("[-] Error in binding.\n");
         exit(1);
     }
-    printf("[+]Bind to port %d\n", PORT);
+    printf("[+] Bind to port %d\n", PORT);
 
     if (listen(sockfd, 10) == 0)
-        printf("[+]Listening....\n");
+        printf("[+] Listening....\n");
     else
-        printf("[-]Error in binding.\n");
+        printf("[-] Error in binding.\n");
 
     while (1)
     {

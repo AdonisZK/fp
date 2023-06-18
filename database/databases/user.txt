@@ -3,3 +3,4 @@ Username: khonsu, Password: khonsu123;
 Username: Mafuyu, Password: root;
 Username: Asahina, Password: root;
 Username: Mizuki, Password: root;
+Username: Ena, Password: root;

@@ -1,28 +1,28 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <ctype.h>
 #include <time.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
 #define PORT 5050
 
 struct permission
 {
-    char name[10000];
-    char pass[10000];
+    char name[256];
+    char pass[256];
 };
 
 int checkPermission(char *uname, char *pass)
 {
     FILE *file;
-    char line[100];
+    char line[128];
     struct permission client;
 
     file = fopen("../database/databases/user.txt", "r");
@@ -39,9 +39,6 @@ int checkPermission(char *uname, char *pass)
         int nameComparison = strcmp(client.name, uname);
         int passComparison = strcmp(client.pass, pass);
 
-        printf("Username Comparison: %d\n", nameComparison);
-        printf("Password Comparison: %d\n", passComparison);
-
         if (nameComparison == 0 && passComparison == 0)
         {
             fclose(file);
@@ -53,21 +50,21 @@ int checkPermission(char *uname, char *pass)
     return 0; // No username and password match
 }
 
-void Log(char *cmd, char *name)
+void Log(char *command, char *name)
 {
     time_t times;
     struct tm *info;
     time(&times);
     info = localtime(&times);
 
-    char info_log[1000];
+    char info_log[256];
 
     FILE *file;
-    char loc[10000];
+    char loc[256];
     snprintf(loc, sizeof loc, "../database/log/log.log", name);
     file = fopen(loc, "ab");
 
-    sprintf(info_log, "%d-%.2d-%.2d %.2d:%.2d:%.2d:%s:%s;\n", info->tm_year + 1900, info->tm_mon + 1, info->tm_mday, info->tm_hour, info->tm_min, info->tm_sec, name, cmd);
+    sprintf(info_log, "%d-%.2d-%.2d %.2d:%.2d:%.2d:%s:%s;\n", info->tm_year + 1900, info->tm_mon + 1, info->tm_mday, info->tm_hour, info->tm_min, info->tm_sec, name, command);
 
     fputs(info_log, file);
     fclose(file);
@@ -92,7 +89,7 @@ int main(int argc, char *argv[])
 
     int allowed = 0;
     int id_user = geteuid();
-    char used_db[1000];
+    char used_db[256];
 
     if (geteuid() == 0)
         allowed = 1;
@@ -131,8 +128,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    //! cut
-
     int client_socket, ret;
     struct sockaddr_in serverAddr;
     char buff[32000];
@@ -141,11 +136,11 @@ int main(int argc, char *argv[])
 
     if (client_socket < 0)
     {
-        printf("[-]Error in connection.\n");
+        printf("[-] Error in connection.\n");
         exit(1);
     }
 
-    printf("[+]Client Socket is created.\n");
+    printf("[+] Client Socket is created.\n");
 
     memset(&serverAddr, '\0', sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
@@ -156,17 +151,17 @@ int main(int argc, char *argv[])
 
     if (ret < 0)
     {
-        printf("[-]Error connection.\n");
+        printf("[-] Error connection.\n");
         exit(1);
     }
-    printf("[+]Connected to Server.\n");
+    printf("[+] Connected to Server.\n");
 
     while (1)
     {
         printf("Client: \t");
-        char input[10000];
-        char temp[10000];
-        char cmd[100][10000];
+        char input[256];
+        char temp[256];
+        char command[100][1000];
         char *token;
         int i = 0;
         scanf(" %[^\n]s", input);
@@ -175,84 +170,84 @@ int main(int argc, char *argv[])
 
         while (token != NULL)
         {
-            strcpy(cmd[i], token);
+            strcpy(command[i], token);
             i++;
             token = strtok(NULL, " ");
         }
 
         int falseCmd = 0;
-        if (strcmp(cmd[0], "CREATE") == 0)
+        if (strcmp(command[0], "CREATE") == 0)
         {
-            if (strcmp(cmd[1], "USER") == 0 && strcmp(cmd[3], "IDENTIFIED") == 0 && strcmp(cmd[4], "BY") == 0)
+            if (strcmp(command[1], "USER") == 0 && strcmp(command[3], "IDENTIFIED") == 0 && strcmp(command[4], "BY") == 0)
             {
-                snprintf(buff, sizeof buff, "CREATEUSER:%s:%s:%d", cmd[2], cmd[5], id_user);
+                snprintf(buff, sizeof buff, "CREATEUSER:%s:%s:%d", command[2], command[5], id_user);
                 send(client_socket, buff, strlen(buff), 0);
             }
-            else if (strcmp(cmd[1], "DATABASE") == 0)
+            else if (strcmp(command[1], "DATABASE") == 0)
             {
-                snprintf(buff, sizeof buff, "CREATEDATABASE:%s:%s:%d", cmd[2], argv[2], id_user);
+                snprintf(buff, sizeof buff, "CREATEDATABASE:%s:%s:%d", command[2], argv[2], id_user);
                 send(client_socket, buff, strlen(buff), 0);
             }
-            else if (strcmp(cmd[1], "TABLE") == 0)
+            else if (strcmp(command[1], "TABLE") == 0)
             {
                 snprintf(buff, sizeof buff, "CREATETABLE:%s", temp);
                 send(client_socket, buff, strlen(buff), 0);
             }
         }
-        else if (strcmp(cmd[0], "GRANT") == 0 && strcmp(cmd[1], "PERMISSION") == 0 && strcmp(cmd[3], "INTO") == 0)
+        else if (strcmp(command[0], "GRANT") == 0 && strcmp(command[1], "PERMISSION") == 0 && strcmp(command[3], "INTO") == 0)
         {
-            snprintf(buff, sizeof buff, "GRANTPERMISSION:%s:%s:%d", cmd[2], cmd[4], id_user);
+            snprintf(buff, sizeof buff, "GRANTPERMISSION:%s:%s:%d", command[2], command[4], id_user);
             send(client_socket, buff, strlen(buff), 0);
         }
-        else if (strcmp(cmd[0], "USE") == 0)
+        else if (strcmp(command[0], "USE") == 0)
         {
-            snprintf(buff, sizeof buff, "USEDATABASE:%s:%s:%d", cmd[1], argv[2], id_user);
+            snprintf(buff, sizeof buff, "USEDATABASE:%s:%s:%d", command[1], argv[2], id_user);
             send(client_socket, buff, strlen(buff), 0);
         }
-        else if (strcmp(cmd[0], "cekCurrentDatabase") == 0)
+        else if (strcmp(command[0], "cekCurrentDatabase") == 0)
         {
-            snprintf(buff, sizeof buff, "%s", cmd[0]);
+            snprintf(buff, sizeof buff, "%s", command[0]);
             send(client_socket, buff, strlen(buff), 0);
         }
-        else if (strcmp(cmd[0], "DROP") == 0)
+        else if (strcmp(command[0], "DROP") == 0)
         {
-            if (strcmp(cmd[1], "DATABASE") == 0)
+            if (strcmp(command[1], "DATABASE") == 0)
             {
-                snprintf(buff, sizeof buff, "DROPDATABASE:%s:%s", cmd[2], argv[2]);
+                snprintf(buff, sizeof buff, "DROPDATABASE:%s:%s", command[2], argv[2]);
                 send(client_socket, buff, strlen(buff), 0);
             }
-            else if (strcmp(cmd[1], "TABLE") == 0)
+            else if (strcmp(command[1], "TABLE") == 0)
             {
-                snprintf(buff, sizeof buff, "DROPTABLE:%s:%s", cmd[2], argv[2]);
+                snprintf(buff, sizeof buff, "DROPTABLE:%s:%s", command[2], argv[2]);
                 send(client_socket, buff, strlen(buff), 0);
             }
-            else if (strcmp(cmd[1], "COLUMN") == 0)
+            else if (strcmp(command[1], "COLUMN") == 0)
             {
-                snprintf(buff, sizeof buff, "DROPCOLUMN:%s:%s:%s", cmd[2], cmd[4], argv[2]);
+                snprintf(buff, sizeof buff, "DROPCOLUMN:%s:%s:%s", command[2], command[4], argv[2]);
                 send(client_socket, buff, strlen(buff), 0);
             }
         }
-        else if (strcmp(cmd[0], "INSERT") == 0 && strcmp(cmd[1], "INTO") == 0)
+        else if (strcmp(command[0], "INSERT") == 0 && strcmp(command[1], "INTO") == 0)
         {
             snprintf(buff, sizeof buff, "INSERT:%s", temp);
             send(client_socket, buff, strlen(buff), 0);
         }
-        else if (strcmp(cmd[0], "UPDATE") == 0)
+        else if (strcmp(command[0], "UPDATE") == 0)
         {
             snprintf(buff, sizeof buff, "UPDATE:%s", temp);
             send(client_socket, buff, strlen(buff), 0);
         }
-        else if (strcmp(cmd[0], "DELETE") == 0)
+        else if (strcmp(command[0], "DELETE") == 0)
         {
             snprintf(buff, sizeof buff, "DELETE:%s", temp);
             send(client_socket, buff, strlen(buff), 0);
         }
-        else if (strcmp(cmd[0], "SELECT") == 0)
+        else if (strcmp(command[0], "SELECT") == 0)
         {
             snprintf(buff, sizeof buff, "SELEECT:%s", temp);
             send(client_socket, buff, strlen(buff), 0);
         }
-        else if (strcmp(cmd[0], ":exit") != 0)
+        else if (strcmp(command[0], ":exit") != 0)
         {
             falseCmd = 1;
             char peringatan[] = "Invalid Command";
@@ -261,7 +256,7 @@ int main(int argc, char *argv[])
 
         if (falseCmd != 1)
         {
-            char sender[10000];
+            char sender[1000];
             if (id_user == 0)
                 strcpy(sender, "root");
             else
@@ -269,9 +264,9 @@ int main(int argc, char *argv[])
             Log(temp, sender);
         }
 
-        if (strcmp(cmd[0], ":exit") == 0)
+        if (strcmp(command[0], ":exit") == 0)
         {
-            send(client_socket, cmd[0], strlen(cmd[0]), 0);
+            send(client_socket, command[0], strlen(command[0]), 0);
             close(client_socket);
             printf("[-]Disconnected from server.\n");
             exit(1);
