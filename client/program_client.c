@@ -72,6 +72,12 @@ void append_log(char *command, char *name)
     snprintf(location, sizeof location, "../database/log/log.log", name);
     file = fopen(location, "a");
 
+    if (file == NULL)
+    {
+        printf("Error opening log file\n");
+        return; // or handle the error in an appropriate way
+    }
+
     sprintf(write_log, "%d-%.2d-%.2d %.2d:%.2d:%.2d:%s:%s;\n",
             info->tm_year + 1900, info->tm_mon + 1, info->tm_mday, info->tm_hour, info->tm_min, info->tm_sec, name, command);
 
@@ -253,7 +259,7 @@ int main(int argc, char *argv[])
             snprintf(buffer, sizeof buffer, "SELECT:%s", temp);
             send(clientSocket, buffer, strlen(buffer), 0);
         }
-        else if (strcmp(command[0], ":exit") != 0)
+        else if (strcmp(command[0], "EXIT") != 0)
         {
             falseCommand = 1;
             char message[] = "Invalid Command";
@@ -270,7 +276,7 @@ int main(int argc, char *argv[])
             append_log(temp, sender);
         }
 
-        if (strcmp(command[0], ":exit") == 0)
+        if (strcmp(command[0], "EXIT") == 0)
         {
             send(clientSocket, command[0], strlen(command[0]), 0);
             close(clientSocket);

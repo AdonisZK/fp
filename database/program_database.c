@@ -32,6 +32,13 @@ struct permission_db
     char name[1024];
 };
 
+void str_empty(char *str1, size_t bufsize)
+{
+    strncpy(str1, "", bufsize);
+    if (str1[bufsize - 1] != '\0')
+        str1[bufsize] = '\0';
+}
+
 int is_user_exist(char *uname)
 {
     FILE *file;
@@ -245,130 +252,6 @@ int drop_table(char *table, char *namaTable)
     return 1;
 }
 
-int updateColumn(char *table, int index, char *ganti)
-{
-    FILE *file, *file1;
-    struct table user;
-    int id, mark = 0;
-    file = fopen(table, "rb");
-    file1 = fopen("temp", "ab");
-    int dataInput = 0;
-
-    while (1)
-    {
-        fread(&user, sizeof(user), 1, file);
-        if (feof(file))
-            break;
-
-        struct table tempUser;
-        int iteration = 0;
-        for (int i = 0; i < user.totalAttr; i++)
-        {
-            if (i == index && dataInput != 0)
-                strcpy(tempUser.data[iteration], ganti);
-            else
-                strcpy(tempUser.data[iteration], user.data[i]);
-
-            printf("%s\n", tempUser.data[iteration]);
-            strcpy(tempUser.type[iteration], user.type[i]);
-            printf("%s\n", tempUser.data[iteration]);
-            iteration++;
-        }
-        tempUser.totalAttr = user.totalAttr;
-        fwrite(&tempUser, sizeof(tempUser), 1, file1);
-        dataInput++;
-    }
-    fclose(file);
-    fclose(file1);
-    remove(table);
-    rename("temp", table);
-    return 0;
-}
-
-int updateColumnWhere(char *table, int index, char *ganti, int change_index, char *where)
-{
-    FILE *file, *file1;
-    struct table user;
-    int id, mark = 0;
-    file = fopen(table, "rb");
-    file1 = fopen("temp", "ab");
-    int dataInput = 0;
-
-    while (1)
-    {
-        fread(&user, sizeof(user), 1, file);
-        if (feof(file))
-            break;
-
-        struct table tempUser;
-        int iteration = 0;
-
-        for (int i = 0; i < user.totalAttr; i++)
-        {
-            if (i == index && dataInput != 0 && strcmp(user.data[change_index], where) == 0)
-                strcpy(tempUser.data[iteration], ganti);
-            else
-                strcpy(tempUser.data[iteration], user.data[i]);
-            printf("%s\n", tempUser.data[iteration]);
-            strcpy(tempUser.type[iteration], user.type[i]);
-            printf("%s\n", tempUser.data[iteration]);
-            iteration++;
-        }
-
-        tempUser.totalAttr = user.totalAttr;
-        fwrite(&tempUser, sizeof(tempUser), 1, file1);
-        dataInput++;
-    }
-    fclose(file);
-    fclose(file1);
-    remove(table);
-    rename("temp", table);
-    return 0;
-}
-
-int deleteTableWhere(char *table, int index, char *column, char *where)
-{
-    FILE *file, *file1;
-    struct table user;
-    int id, mark = 0;
-    file = fopen(table, "rb");
-    file1 = fopen("temp", "ab");
-    int dataInput = 0;
-
-    while (1)
-    {
-        mark = 0;
-        fread(&user, sizeof(user), 1, file);
-
-        if (feof(file))
-            break;
-
-        struct table tempUser;
-        int iteration = 0;
-
-        for (int i = 0; i < user.totalAttr; i++)
-        {
-            if (i == index && dataInput != 0 && strcmp(user.data[i], where) == 0)
-                mark = 1;
-            strcpy(tempUser.data[iteration], user.data[i]);
-            printf("%s\n", tempUser.data[iteration]);
-            strcpy(tempUser.type[iteration], user.type[i]);
-            printf("%s\n", tempUser.data[iteration]);
-            iteration++;
-        }
-
-        tempUser.totalAttr = user.totalAttr;
-        if (mark != 1)
-            fwrite(&tempUser, sizeof(tempUser), 1, file1);
-        dataInput++;
-    }
-    fclose(file);
-    fclose(file1);
-    remove(table);
-    rename("temp", table);
-    return 0;
-}
-
 int main()
 {
     int socketDesc, checkBind, newSocket;
@@ -443,7 +326,7 @@ int main()
                     {
                         char message[] = "Request Denied!";
                         send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                     }
                 }
                 else if (strcmp(command[0], "GRANTPERMISSION") == 0)
@@ -463,14 +346,14 @@ int main()
                         {
                             char message[] = "User Not Found!";
                             send(newSocket, message, strlen(message), 0);
-                            bzero(buffer, sizeof(buffer));
+                            str_empty(buffer, sizeof(buffer));
                         }
                     }
                     else
                     {
                         char message[] = "Request Denied!";
                         send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                     }
                 }
                 else if (strcmp(command[0], "CREATEDATABASE") == 0)
@@ -494,7 +377,7 @@ int main()
                         {
                             char message[] = "Request Denied!";
                             send(newSocket, message, strlen(message), 0);
-                            bzero(buffer, sizeof(buffer));
+                            str_empty(buffer, sizeof(buffer));
                         }
                         else
                         {
@@ -502,7 +385,7 @@ int main()
                             char message[] = "Access to Database : Allowed";
                             printf("currDB = %s\n", currDB);
                             send(newSocket, message, strlen(message), 0);
-                            bzero(buffer, sizeof(buffer));
+                            str_empty(buffer, sizeof(buffer));
                         }
                     }
                     else
@@ -511,7 +394,7 @@ int main()
                         char message[] = "Access to Database : Allowed";
                         printf("currDB = %s\n", currDB);
                         send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                     }
                 }
                 else if (strcmp(command[0], "CREATETABLE") == 0)
@@ -523,7 +406,7 @@ int main()
                     {
                         strcpy(currDB, "Select a Database First");
                         send(newSocket, currDB, strlen(currDB), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                     }
                     else
                     {
@@ -594,7 +477,7 @@ int main()
                     {
                         char message[] = "Request Denied!";
                         send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                         continue;
                     }
                     else
@@ -604,7 +487,7 @@ int main()
                         system(delete);
                         char message[] = "Database Has Been Removed";
                         send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                     }
                 }
                 else if (strcmp(command[0], "DROPTABLE") == 0)
@@ -613,7 +496,7 @@ int main()
                     {
                         strcpy(currDB, "Select a Database First");
                         send(newSocket, currDB, strlen(currDB), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                         continue;
                     }
 
@@ -626,7 +509,7 @@ int main()
                     remove(delete);
                     char message[] = "Table Has Been Removed";
                     send(newSocket, message, strlen(message), 0);
-                    bzero(buffer, sizeof(buffer));
+                    str_empty(buffer, sizeof(buffer));
                 }
                 else if (strcmp(command[0], "DROPCOLUMN") == 0)
                 {
@@ -634,7 +517,7 @@ int main()
                     {
                         strcpy(currDB, "Select a Database First");
                         send(newSocket, currDB, strlen(currDB), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                         continue;
                     }
 
@@ -657,14 +540,14 @@ int main()
                     {
                         char message[] = "Column Not Found";
                         send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                         continue;
                     }
 
                     drop_attribute(createTable, index);
                     char message[] = "Column Has Been Removed";
                     send(newSocket, message, strlen(message), 0);
-                    bzero(buffer, sizeof(buffer));
+                    str_empty(buffer, sizeof(buffer));
                 }
                 else if (strcmp(command[0], "INSERT") == 0)
                 {
@@ -672,92 +555,9 @@ int main()
                     {
                         strcpy(currDB, "Select a Database First");
                         send(newSocket, currDB, strlen(currDB), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                         continue;
                     }
-
-                    char query_list[128][1024];
-                    char temp_cmd[2048];
-
-                    snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
-                    char *currToken;
-                    currToken = strtok(temp_cmd, "\'(), ");
-                    int total = 0;
-
-                    while (currToken != NULL)
-                    {
-                        strcpy(query_list[total], currToken);
-                        total++;
-                        currToken = strtok(NULL, "\'(), ");
-                    }
-
-                    char createTable[2048];
-                    if (strlen(query_list[2]) > 0 && query_list[2][strlen(query_list[2]) - 1] == ';')
-                    {
-                        query_list[2][strlen(query_list[2]) - 1] = '\0';
-                    }
-                    if (strlen(currDB) > 0 && currDB[strlen(currDB) - 1] == ';')
-                    {
-                        currDB[strlen(currDB) - 1] = '\0';
-                    }
-                    snprintf(createTable, sizeof createTable, "databases/%s/%s", currDB, query_list[2]);
-                    FILE *file;
-                    int total_column;
-                    file = fopen(createTable, "r");
-
-                    if (file == NULL)
-                    {
-                        char message[] = "Table Not Found";
-                        send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
-                        continue;
-                    }
-                    else
-                    {
-                        struct table user;
-                        fread(&user, sizeof(user), 1, file);
-                        total_column = user.totalAttr;
-                        fclose(file);
-                    }
-
-                    int iteration = 0;
-                    int data_iteration = 3;
-                    struct table column;
-
-                    while (total > 3)
-                    {
-                        strcpy(column.data[iteration], query_list[data_iteration]);
-                        printf("%s\n", column.data[iteration]);
-                        strcpy(column.type[iteration], "string");
-                        data_iteration++;
-                        total = total - 1;
-                        iteration++;
-                    }
-
-                    column.totalAttr = iteration;
-                    if (total_column != column.totalAttr)
-                    {
-                        char message[] = "Input Missmatch";
-                        send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
-                        continue;
-                    }
-
-                    printf("iteration = %d\n", iteration);
-                    FILE *file1;
-                    printf("%s\n", createTable);
-                    file1 = fopen(createTable, "a");
-                    while (total > 3)
-                    {
-                        fprintf(file1, "Data: %s, Type: %s\n", query_list[data_iteration], "string");
-                        data_iteration++;
-                        total = total - 1;
-                        iteration++;
-                    }
-                    fclose(file1);
-                    char message[] = "Data Has Been Inserted";
-                    send(newSocket, message, strlen(message), 0);
-                    bzero(buffer, sizeof(buffer));
                 }
                 else if (strcmp(command[0], "UPDATE") == 0)
                 {
@@ -765,64 +565,9 @@ int main()
                     {
                         strcpy(currDB, "Select a Database First");
                         send(newSocket, currDB, strlen(currDB), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                         continue;
                     }
-                    char query_list[128][1024];
-                    char temp_cmd[2048];
-                    snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
-                    char *currToken;
-                    currToken = strtok(temp_cmd, "\'(),= ");
-                    int total = 0;
-                    while (currToken != NULL)
-                    {
-                        strcpy(query_list[total], currToken);
-                        printf("%s\n", query_list[total]);
-                        total++;
-                        currToken = strtok(NULL, "\'(),= ");
-                    }
-                    printf("total = %d\n", total);
-                    char createTable[2048];
-                    snprintf(createTable, sizeof createTable, "databases/%s/%s", currDB, query_list[1]);
-                    if (total == 5)
-                    {
-                        printf("buat table = %s, kolumn = %s", createTable, query_list[3]);
-                        int index = find_column(createTable, query_list[3]);
-                        if (index == -1)
-                        {
-                            char message[] = "Column Not Found";
-                            send(newSocket, message, strlen(message), 0);
-                            bzero(buffer, sizeof(buffer));
-                            continue;
-                        }
-                        printf("index = %d\n", index);
-                        updateColumn(createTable, index, query_list[4]);
-                    }
-                    else if (total == 8)
-                    {
-                        printf("buat table = %s, kolumn = %s", createTable, query_list[3]);
-                        int index = find_column(createTable, query_list[3]);
-                        if (index == -1)
-                        {
-                            char message[] = "Column Not Found";
-                            send(newSocket, message, strlen(message), 0);
-                            bzero(buffer, sizeof(buffer));
-                            continue;
-                        }
-                        printf("%s\n", query_list[7]);
-                        int change_index = find_column(createTable, query_list[6]);
-                        updateColumnWhere(createTable, index, query_list[4], change_index, query_list[7]);
-                    }
-                    else
-                    {
-                        char message[] = "Data Has Been Deleted";
-                        send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
-                        continue;
-                    }
-                    char message[] = "Data Has Been Updated";
-                    send(newSocket, message, strlen(message), 0);
-                    bzero(buffer, sizeof(buffer));
                 }
                 else if (strcmp(command[0], "DELETE") == 0)
                 {
@@ -830,52 +575,9 @@ int main()
                     {
                         strcpy(currDB, "Select a Database First");
                         send(newSocket, currDB, strlen(currDB), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                         continue;
                     }
-                    char query_list[128][1024];
-                    char temp_cmd[2048];
-                    snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
-                    char *currToken;
-                    currToken = strtok(temp_cmd, "\'(),= ");
-                    int total = 0;
-                    while (currToken != NULL)
-                    {
-                        strcpy(query_list[total], currToken);
-                        printf("%s\n", query_list[total]);
-                        total++;
-                        currToken = strtok(NULL, "\'(),= ");
-                    }
-                    printf("total = %d\n", total);
-                    char createTable[2048];
-                    snprintf(createTable, sizeof createTable, "databases/%s/%s", currDB, query_list[2]);
-                    if (total == 3)
-                    {
-                        drop_table(createTable, query_list[2]);
-                    }
-                    else if (total == 6)
-                    {
-                        int index = find_column(createTable, query_list[4]);
-                        if (index == -1)
-                        {
-                            char message[] = "Column Not Found";
-                            send(newSocket, message, strlen(message), 0);
-                            bzero(buffer, sizeof(buffer));
-                            continue;
-                        }
-                        printf("index  = %d\n", index);
-                        deleteTableWhere(createTable, index, query_list[4], query_list[5]);
-                    }
-                    else
-                    {
-                        char message[] = "Wrong input";
-                        send(newSocket, message, strlen(message), 0);
-                        bzero(buffer, sizeof(buffer));
-                        continue;
-                    }
-                    char message[] = "Data Has Been Deleted";
-                    send(newSocket, message, strlen(message), 0);
-                    bzero(buffer, sizeof(buffer));
                 }
                 else if (strcmp(command[0], "SELECT") == 0)
                 {
@@ -883,210 +585,11 @@ int main()
                     {
                         strcpy(currDB, "Select a Database First");
                         send(newSocket, currDB, strlen(currDB), 0);
-                        bzero(buffer, sizeof(buffer));
+                        str_empty(buffer, sizeof(buffer));
                         continue;
                     }
-                    char query_list[128][1024];
-                    char temp_cmd[2048];
-                    snprintf(temp_cmd, sizeof temp_cmd, "%s", command[1]);
-                    char *currToken;
-                    currToken = strtok(temp_cmd, "\'(),= ");
-                    int total = 0;
-                    while (currToken != NULL)
-                    {
-                        strcpy(query_list[total], currToken);
-                        printf("%s\n", query_list[total]);
-                        total++;
-                        currToken = strtok(NULL, "\'(),= ");
-                    }
-                    printf("ABC\n");
-                    if (total == 4)
-                    {
-                        char createTable[2048];
-                        snprintf(createTable, sizeof createTable, "databases/%s/%s", currDB, query_list[3]);
-                        printf("buat table = %s", createTable);
-                        char perintahKolom[1024];
-                        printf("masuk 4\n");
-                        if (strcmp(query_list[1], "*") == 0)
-                        {
-                            FILE *file, *file1;
-                            struct table user;
-                            int id, mark = 0;
-                            file = fopen(createTable, "rb");
-                            char buffers[40000];
-                            char sendDatabase[40000];
-                            bzero(buffer, sizeof(buffer));
-                            bzero(sendDatabase, sizeof(sendDatabase));
-                            while (1)
-                            {
-                                char enter[] = "\n";
-                                fread(&user, sizeof(user), 1, file);
-                                snprintf(buffers, sizeof buffers, "\n");
-                                if (feof(file))
-                                {
-                                    break;
-                                }
-                                for (int i = 0; i < user.totalAttr; i++)
-                                {
-                                    char padding[2048];
-                                    snprintf(padding, sizeof padding, "%s\t", user.data[i]);
-                                    strcat(buffers, padding);
-                                }
-                                strcat(sendDatabase, buffers);
-                            }
-                            send(newSocket, sendDatabase, strlen(sendDatabase), 0);
-                            bzero(sendDatabase, sizeof(sendDatabase));
-                            bzero(buffer, sizeof(buffer));
-                            fclose(file);
-                        }
-                        else
-                        {
-                            int index = find_column(createTable, query_list[1]);
-                            printf("%d\n", index);
-                            FILE *file, *file1;
-                            struct table user;
-                            int id, mark = 0;
-                            file = fopen(createTable, "rb");
-                            char buffers[40000];
-                            char sendDatabase[40000];
-                            bzero(buffer, sizeof(buffer));
-                            bzero(sendDatabase, sizeof(sendDatabase));
-                            while (1)
-                            {
-                                char enter[] = "\n";
-                                fread(&user, sizeof(user), 1, file);
-                                snprintf(buffers, sizeof buffers, "\n");
-                                if (feof(file))
-                                {
-                                    break;
-                                }
-                                for (int i = 0; i < user.totalAttr; i++)
-                                {
-                                    if (i == index)
-                                    {
-                                        char padding[2048];
-                                        snprintf(padding, sizeof padding, "%s\t", user.data[i]);
-                                        strcat(buffers, padding);
-                                    }
-                                }
-                                strcat(sendDatabase, buffers);
-                            }
-                            printf("ini send fix\n%s\n", sendDatabase);
-                            fclose(file);
-                            send(newSocket, sendDatabase, strlen(sendDatabase), 0);
-                            bzero(sendDatabase, sizeof(sendDatabase));
-                            bzero(buffer, sizeof(buffer));
-                        }
-                    }
-                    else if (total == 7 && strcmp(query_list[4], "WHERE") == 0)
-                    {
-                        char createTable[2048];
-                        snprintf(createTable, sizeof createTable, "databases/%s/%s", currDB, query_list[3]);
-                        printf("buat table = %s", createTable);
-                        char perintahKolom[1024];
-                        printf("masuk 4\n");
-                        if (strcmp(query_list[1], "*") == 0)
-                        {
-                            FILE *file, *file1;
-                            struct table user;
-                            int id, mark = 0;
-                            file = fopen(createTable, "rb");
-                            char buffers[40000];
-                            char sendDatabase[40000];
-                            int index = find_column(createTable, query_list[5]);
-                            printf("%d\n", index);
-                            bzero(buffer, sizeof(buffer));
-                            bzero(sendDatabase, sizeof(sendDatabase));
-                            while (1)
-                            {
-                                char enter[] = "\n";
-                                fread(&user, sizeof(user), 1, file);
-                                snprintf(buffers, sizeof buffers, "\n");
-                                if (feof(file))
-                                {
-                                    break;
-                                }
-                                for (int i = 0; i < user.totalAttr; i++)
-                                {
-                                    if (strcmp(user.data[index], query_list[6]) == 0)
-                                    {
-                                        char padding[2048];
-                                        snprintf(padding, sizeof padding, "%s\t", user.data[i]);
-                                        strcat(buffers, padding);
-                                    }
-                                }
-                                strcat(sendDatabase, buffers);
-                            }
-                            send(newSocket, sendDatabase, strlen(sendDatabase), 0);
-                            bzero(sendDatabase, sizeof(sendDatabase));
-                            bzero(buffer, sizeof(buffer));
-                            fclose(file);
-                        }
-                        else
-                        {
-                            int index = find_column(createTable, query_list[1]);
-                            printf("%d\n", index);
-                            FILE *file, *file1;
-                            struct table user;
-                            int id, mark = 0;
-                            int change_index = find_column(createTable, query_list[5]);
-                            file = fopen(createTable, "rb");
-                            char buffers[40000];
-                            char sendDatabase[40000];
-                            bzero(buffer, sizeof(buffer));
-                            bzero(sendDatabase, sizeof(sendDatabase));
-                            while (1)
-                            {
-                                char enter[] = "\n";
-                                fread(&user, sizeof(user), 1, file);
-                                snprintf(buffers, sizeof buffers, "\n");
-                                if (feof(file))
-                                {
-                                    break;
-                                }
-                                for (int i = 0; i < user.totalAttr; i++)
-                                {
-                                    if (i == index && (strcmp(user.data[change_index], query_list[6]) == 0 || strcmp(user.data[i], query_list[5]) == 0))
-                                    {
-                                        char padding[2048];
-                                        snprintf(padding, sizeof padding, "%s\t", user.data[i]);
-                                        strcat(buffers, padding);
-                                    }
-                                }
-                                strcat(sendDatabase, buffers);
-                            }
-                            printf("ini send fix\n%s\n", sendDatabase);
-                            fclose(file);
-                            send(newSocket, sendDatabase, strlen(sendDatabase), 0);
-                            bzero(sendDatabase, sizeof(sendDatabase));
-                            bzero(buffer, sizeof(buffer));
-                        }
-                    }
-                    else
-                    {
-                        printf("ini query 3 %s", query_list[total - 3]);
-                        if (strcmp(query_list[total - 3], "WHERE") != 0)
-                        {
-                            char createTable[2048];
-                            snprintf(createTable, sizeof createTable, "databases/%s/%s", currDB, query_list[total - 1]);
-                            printf("buat table = %s", createTable);
-                            printf("tanpa where");
-                            int index[128];
-                            int iteration = 0;
-                            for (int i = 1; i < total - 2; i++)
-                            {
-                                index[iteration] = find_column(createTable, query_list[i]);
-                                printf("%d\n", index[iteration]);
-                                iteration++;
-                            }
-                        }
-                        else if (strcmp(query_list[total - 3], "WHERE") == 0)
-                        {
-                            printf("dengan where");
-                        }
-                    }
                 }
-                if (strcmp(buffer, ":exit") == 0)
+                if (strcmp(buffer, "EXIT") == 0)
                 {
                     printf("Disconnected from %s:%d\n", inet_ntoa(newAddress.sin_addr), ntohs(newAddress.sin_port));
                     break;
@@ -1095,7 +598,7 @@ int main()
                 {
                     printf("Client: %s\n", buffer);
                     send(newSocket, buffer, strlen(buffer), 0);
-                    bzero(buffer, sizeof(buffer));
+                    str_empty(buffer, sizeof(buffer));
                 }
             }
         }

@@ -84,3 +84,16 @@
 2023-06-19 06:52:05:Nene:INSERT INTO table2 ('value1', "Amo", 'value2', 2,'value3', "Gus",  'value4', 4);;
 2023-06-19 06:52:24:Nene:INSERT INTO table2 ('value1', "Amo", 'value2', 2,'value3', "Gus",  'value4', 4);;
 2023-06-19 06:52:32:Nene::exit;
+2023-06-19 06:53:31:Nene:USE database3;;
+2023-06-19 06:53:36:Nene:INSERT INTO table2 ('value1', "Amo", 'value2', 2,'value3', "Gus",  'value4', 4);;
+2023-06-19 06:54:56:Nene::exit;
+2023-06-19 18:22:30:root:USE database3;;
+2023-06-19 18:22:53:Mafuyu:USE database3;;
+2023-06-19 18:23:05:Mafuyu:USE datbase1;;
+2023-06-19 18:23:17:Mafuyu::exit;
+2023-06-19 18:23:33:Nene:USE WXS;;
+2023-06-23 19:23:12:root:CREATE USER adonis2;;
+2023-06-23 19:23:44:root:CREATE USER Adonis2 IDENTIFIED by root;;
+2023-06-23 19:23:53:root:EXIT;
+2023-06-23 19:24:09:root:USE database1;;
+2023-06-23 19:24:16:root:CREATE USER khonsu IDENTIFIED BY khonsu123;;
