@@ -89,7 +89,9 @@ int main(int argc, char *argv[])
 {
     char *username = NULL;
     char *password = NULL;
+    char *database = NULL;
 
+    // Handling command line arguments
     for (int i = 1; i < argc; i += 2)
     {
         if (strcmp(argv[i], "-u") == 0)
@@ -100,13 +102,17 @@ int main(int argc, char *argv[])
         {
             password = argv[i + 1];
         }
+        else if (strcmp(argv[i], "-d") == 0)
+        {
+            database = argv[i + 1];
+        }
     }
 
     int userAllowed = 0;
     int idUser = geteuid();
     char currDB[256];
 
-    if (geteuid() == 0) //root
+    if (geteuid() == 0) // root
     {
         userAllowed = 1;
         // strncpy(argv[2], "root", strlen(argv[2]));
@@ -125,7 +131,7 @@ int main(int argc, char *argv[])
         idUser = id;
     }
 
-    if (idUser == 0) //root
+    if (idUser == 0) // root
     {
     }
     else if (username == NULL || password == NULL)
@@ -172,6 +178,13 @@ int main(int argc, char *argv[])
         exit(1);
     }
     printf("SERVER : Connected to Server.\n");
+
+    if (database != NULL)
+    {
+        printf("Entering database %s\n", database);
+        snprintf(buffer, sizeof buffer, "USEDATABASE:%s:%s:%d", database, argv[2], idUser);
+        send(clientSocket, buffer, strlen(buffer), 0);
+    }
 
     while (1)
     {
