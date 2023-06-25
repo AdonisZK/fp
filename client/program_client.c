@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     int idUser = geteuid();
     char currDB[256];
 
-    if (geteuid() == 0)
+    if (geteuid() == 0) //root
     {
         userAllowed = 1;
         // strncpy(argv[2], "root", strlen(argv[2]));
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
         idUser = id;
     }
 
-    if (idUser == 0)
+    if (idUser == 0) //root
     {
     }
     else if (username == NULL || password == NULL)

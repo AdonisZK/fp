@@ -101,7 +101,7 @@ int is_allowed_db(char *name, char *database)
     {
         database[strlen(database) - 1] = '\0';
     }
-    printf("name = %s  database = %s\n", name, database);
+    // printf("name = %s  database = %s\n", name, database);
     file = fopen("databases/permission.txt", "r"); // Open the file in read mode
     if (file == NULL)
     {
@@ -320,7 +320,7 @@ int main()
                 }
                 if (strcmp(command[0], "CREATEUSER") == 0)
                 {
-                    if (strcmp(command[3], "0") == 0)
+                    if (strcmp(command[3], "0") == 0) // Root
                         create_user(command[1], command[2]);
                     else
                     {
@@ -331,7 +331,7 @@ int main()
                 }
                 else if (strcmp(command[0], "GRANTPERMISSION") == 0)
                 {
-                    if (strcmp(command[3], "0") == 0)
+                    if (strcmp(command[3], "0") == 0) //root
                     {
                         int exist = is_user_exist(command[2]);
                         if (exist == 1)
@@ -501,10 +501,10 @@ int main()
                     }
 
                     char delete[2048];
-                    if (strlen(command[1]) > 0)
+                   if (strlen(command[1]) > 0)
                     {
                         command[1][strlen(command[1]) - 1] = '\0';
-                    }
+                    } 
                     snprintf(delete, sizeof delete, "databases/%s/%s", currDB, command[1]);
                     remove(delete);
                     char message[] = "Table Has Been Removed";
@@ -532,8 +532,8 @@ int main()
 
                     char createTable[2048];
                     snprintf(createTable, sizeof createTable, "databases/%s/%s", currDB, command[2]);
-                    printf("1 : %s\n", command[1]);
-                    printf("2 : %s\n", command[2]);
+                    // printf("1 : %s\n", command[1]);
+                    // printf("2 : %s\n", command[2]);
                     int index = find_column(createTable, command[1]);
 
                     if (index == -1)

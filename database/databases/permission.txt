@@ -1,14 +1,4 @@
 Mafuyu database1
-Adonis database2
-Ena database3
-Ena databasedel
-arda database3
-arda amogus2
-LANGUAGE=en_US dbamogus
-LANGUAGE=en_US amoamogus
-arda database1
-Emu database3
-Emu EmuDB
-Nene database3
-LANGUAGE=en_US TEST1
-Nene WXS
+
+user1 database1
+LANG=en_US.UTF-8 amogus

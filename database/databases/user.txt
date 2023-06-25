@@ -1,10 +1,3 @@
-Username: Adonis, Password: root;
+
 Username: khonsu, Password: khonsu123;
-Username: Mafuyu, Password: root;
-Username: Asahina, Password: root;
-Username: Mizuki, Password: root;
-Username: Ena, Password: root;
-Username: arda, Password: asta;
-Username: Emu, Password: root;
-Username: Nene, Password: root;
-Username: khonsu, Password: khonsu123;
+Username: user1, Password: root;
